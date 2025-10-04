@@ -1,0 +1,30 @@
+name: format
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  dotnet-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dotnet tools
+        run: dotnet tool restore
+
+      - name: Verify whitespace formatting
+        run: dotnet format whitespace --verify-no-changes
+
+      - name: Verify code style formatting
+        run: dotnet format style --verify-no-changes
+
+      - name: Verify analyzer-driven fixes
+        run: dotnet format analyzers --severity warn --verify-no-changes

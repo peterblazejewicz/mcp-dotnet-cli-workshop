@@ -1,6 +1,7 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 using DotNetCliMcp.Core.Plugins;
 using DotNetCliMcp.Core.Services;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -50,8 +51,8 @@ try
 
     // Configuration for LM Studio (local OpenAI-compatible endpoint)
     // LM Studio expects the base URL without /v1 path - it will append it automatically
-    const string lmStudioEndpoint = "http://127.0.0.1:1234/v1";
-    const string modelName = "local-model"; // LM Studio uses this as default
+    const string LmStudioEndpoint = "http://127.0.0.1:1234/v1";
+    const string ModelName = "local-model"; // LM Studio uses this as default
 
     // Create Semantic Kernel with OpenAI-compatible chat completion service
     var kernelBuilder = Kernel.CreateBuilder();
@@ -59,9 +60,9 @@ try
     // Configure OpenAI chat completion pointing to LM Studio
     // The endpoint should include /v1 to match OpenAI API structure
     kernelBuilder.AddOpenAIChatCompletion(
-        modelId: modelName,
+        modelId: ModelName,
         apiKey: "not-needed", // LM Studio doesn't require API key
-        endpoint: new Uri(lmStudioEndpoint),
+        endpoint: new Uri(LmStudioEndpoint),
         httpClient: new HttpClient()
     );
 
@@ -164,7 +165,7 @@ User: ""What's my latest SDK?""
 Remember: ONE tool call, EXACT function name, WAIT for results!");
 
     logger.LogInformation("=== DotNet CLI MCP Assistant ===");
-    logger.LogInformation("Connected to LM Studio at: {Endpoint}", lmStudioEndpoint);
+    logger.LogInformation("Connected to LM Studio at: {Endpoint}", LmStudioEndpoint);
     logger.LogWarning("Note: Make sure LM Studio is running with a model loaded");
     logger.LogInformation("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");
     logger.LogInformation(string.Empty);
@@ -182,7 +183,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
     while (true)
     {
         // Use Console.Write for the prompt as it needs to stay on same line
-        System.Console.Write("\x1b[32mYou: \x1b[0m");  // Green color for user prompt
+        Console.Write("\x1b[32mYou: \x1b[0m");  // Green color for user prompt
         var userInput = Console.ReadLine();
 
         if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
@@ -202,33 +203,33 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
                 history,
                 settings,
                 kernel
-            );
+            ).ConfigureAwait(false);
 
             if (response?.Content != null)
             {
                 var content = response.Content;
-                
+
                 // Strip out any reasoning tags that may have leaked through
                 content = System.Text.RegularExpressions.Regex.Replace(
-                    content, 
-                    @"<think>.*?</think>", 
-                    "", 
+                    content,
+                    @"<think>.*?</think>",
+                    "",
                     System.Text.RegularExpressions.RegexOptions.Singleline
                 );
                 content = System.Text.RegularExpressions.Regex.Replace(
-                    content, 
-                    @"<reasoning>.*?</reasoning>", 
-                    "", 
+                    content,
+                    @"<reasoning>.*?</reasoning>",
+                    "",
                     System.Text.RegularExpressions.RegexOptions.Singleline
                 );
-                
+
                 // Trim any extra whitespace from cleaning
                 content = content.Trim();
-                
+
                 history.AddAssistantMessage(content);
                 // Use custom color for assistant responses (magenta)
-                System.Console.WriteLine($"\x1b[35m\nAssistant: {content}\x1b[0m");
-                System.Console.WriteLine();
+                Console.WriteLine($"\x1b[35m\nAssistant: {content}\x1b[0m");
+                Console.WriteLine();
             }
             else
             {
@@ -253,7 +254,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogError("  3. The loaded model doesn't support function calling");
             logger.LogError("  4. LM Studio version incompatibility");
             logger.LogWarning("Please verify:");
-            logger.LogWarning("  - LM Studio is running at {Endpoint}", lmStudioEndpoint);
+            logger.LogWarning("  - LM Studio is running at {Endpoint}", LmStudioEndpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             logger.LogWarning("  - The model supports chat completions");
             // Remove the last user message to allow retry
@@ -268,7 +269,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogError("Error: Could not connect to LM Studio.");
             logger.LogWarning("Please ensure:");
             logger.LogWarning("  - LM Studio is running");
-            logger.LogWarning("  - The endpoint {Endpoint} is accessible", lmStudioEndpoint);
+            logger.LogWarning("  - The endpoint {Endpoint} is accessible", LmStudioEndpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             // Remove the last user message to allow retry
             if (history.Count > 0)
@@ -283,7 +284,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogError("Details: {Message}", ex.Message);
             logger.LogWarning("Please ensure:");
             logger.LogWarning("  - LM Studio is running");
-            logger.LogWarning("  - The endpoint {Endpoint} is accessible", lmStudioEndpoint);
+            logger.LogWarning("  - The endpoint {Endpoint} is accessible", LmStudioEndpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             logger.LogWarning("  - The model is compatible with OpenAI chat completions");
             // Remove the last user message to allow retry
@@ -320,7 +321,7 @@ catch (Exception ex)
 }
 finally
 {
-    await Log.CloseAndFlushAsync();
+    await Log.CloseAndFlushAsync().ConfigureAwait(false);
 }
 
 return 0;

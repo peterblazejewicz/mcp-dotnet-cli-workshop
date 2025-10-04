@@ -1,26 +1,23 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 using DotNetCliMcp.Core.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Xunit;
 
 namespace DotNetCliMcp.Core.Tests.Services;
 
 public class DotNetCliServiceTests
 {
-    private readonly ILogger<DotNetCliService> _mockLogger;
+    private readonly ILogger<DotNetCliService> _mockLogger = Substitute.For<ILogger<DotNetCliService>>();
     private readonly DotNetCliService _service;
 
-    public DotNetCliServiceTests()
-    {
-        _mockLogger = Substitute.For<ILogger<DotNetCliService>>();
-        _service = new DotNetCliService(_mockLogger);
-    }
+    public DotNetCliServiceTests() => this._service = new DotNetCliService(this._mockLogger);
 
     [Fact]
-    public async Task GetDotNetInfoAsync_ShouldReturnDotNetInfo()
+    public async Task GetDotNetInfo_ShouldReturnDotNetInfoAsync()
     {
         // Act
-        var result = await _service.GetDotNetInfoAsync();
+        var result = await this._service.GetDotNetInfoAsync().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result);
@@ -29,10 +26,10 @@ public class DotNetCliServiceTests
     }
 
     [Fact]
-    public async Task GetInstalledSdksAsync_ShouldReturnListOfSdks()
+    public async Task GetInstalledSdks_ShouldReturnListOfSdksAsync()
     {
         // Act
-        var result = await _service.GetInstalledSdksAsync();
+        var result = await this._service.GetInstalledSdksAsync().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result);
@@ -45,10 +42,10 @@ public class DotNetCliServiceTests
     }
 
     [Fact]
-    public async Task GetInstalledRuntimesAsync_ShouldReturnListOfRuntimes()
+    public async Task GetInstalledRuntimes_ShouldReturnListOfRuntimesAsync()
     {
         // Act
-        var result = await _service.GetInstalledRuntimesAsync();
+        var result = await this._service.GetInstalledRuntimesAsync().ConfigureAwait(true);
 
         // Assert
         Assert.NotNull(result);
@@ -62,7 +59,7 @@ public class DotNetCliServiceTests
     }
 
     [Fact]
-    public async Task GetDotNetInfoAsync_WithCancellation_ShouldRespectCancellationToken()
+    public async Task GetDotNetInfo_WithCancellation_ShouldRespectCancellationTokenAsync()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -70,15 +67,15 @@ public class DotNetCliServiceTests
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => _service.GetDotNetInfoAsync(cts.Token)
-        );
+            () => this._service.GetDotNetInfoAsync(cts.Token)
+        ).ConfigureAwait(true);
     }
 
     [Fact]
-    public async Task GetInstalledSdksAsync_ShouldParseSdkVersionsCorrectly()
+    public async Task GetInstalledSdks_ShouldParseSdkVersionsCorrectlyAsync()
     {
         // Act
-        var sdks = await _service.GetInstalledSdksAsync();
+        var sdks = await this._service.GetInstalledSdksAsync().ConfigureAwait(true);
 
         // Assert
         Assert.All(sdks, sdk =>

@@ -18,12 +18,30 @@ A .NET 9 application that exposes `dotnet` CLI capabilities through Semantic Ker
 
 ## Quick Start
 
+### 0. One-shot collaborator setup (recommended)
+
+If you have PowerShell Core (pwsh) installed, you can bootstrap everything with one command:
+
+```bash
+pwsh -File scripts/setup-collaborator.ps1
+```
+
+- Adds no global settings; only affects this repo
+- Restores local tools, formats code, builds, and runs tests
+- Optionally install git hooks:
+
+```bash
+pwsh -File scripts/setup-collaborator.ps1 -InstallGitHooks
+```
+
+Alternatively, proceed with the manual steps below.
+
 ### 1. Clone and Build
 
 ```bash
 cd cli-mcp
-dotnet restore
-dotnet build
+ dotnet restore
+ dotnet build
 ```
 
 ### 2. Start LM Studio

@@ -1,0 +1,7 @@
+# Archive directory - excluded from version control
+*
+!.gitignore
+!.aiignore
+!.aiderignore
+!.cursorignore
+!.copilotignore

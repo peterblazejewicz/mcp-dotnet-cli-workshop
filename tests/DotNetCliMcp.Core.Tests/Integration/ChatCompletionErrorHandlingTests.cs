@@ -1,8 +1,7 @@
-using Microsoft.Extensions.Logging;
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using NSubstitute;
-using Xunit;
 
 namespace DotNetCliMcp.Core.Tests.Integration;
 
@@ -12,15 +11,12 @@ namespace DotNetCliMcp.Core.Tests.Integration;
 /// </summary>
 public class ChatCompletionErrorHandlingTests
 {
-    private readonly ILogger<ChatCompletionErrorHandlingTests> _logger;
-
     public ChatCompletionErrorHandlingTests()
     {
-        _logger = Substitute.For<ILogger<ChatCompletionErrorHandlingTests>>();
     }
 
     [Fact]
-    public async Task ChatCompletion_WithInvalidEndpoint_ShouldThrowHttpOperationException()
+    public async Task ChatCompletion_WithInvalidEndpoint_ShouldThrowHttpOperationExceptionAsync()
     {
         // Arrange
         var kernel = Kernel.CreateBuilder()
@@ -38,8 +34,8 @@ public class ChatCompletionErrorHandlingTests
         // Semantic Kernel wraps HttpRequestException in HttpOperationException
         await Assert.ThrowsAnyAsync<HttpOperationException>(async () =>
         {
-            await chatService.GetChatMessageContentAsync(history);
-        });
+            await chatService.GetChatMessageContentAsync(history).ConfigureAwait(true);
+        }).ConfigureAwait(true);
     }
 
     [Fact]
@@ -137,7 +133,7 @@ public class ChatCompletionErrorHandlingTests
     [InlineData("HttpRequestException", false)]
     [InlineData("InvalidOperationException", false)]
     public void ExceptionTypeCheck_ForKnownErrors_ShouldIdentifyCorrectly(
-        string exceptionTypeName, 
+        string exceptionTypeName,
         bool shouldMatchArgumentOutOfRange)
     {
         // Arrange
@@ -150,7 +146,7 @@ public class ChatCompletionErrorHandlingTests
         };
 
         // Act
-        var isArgumentOutOfRange = exception is ArgumentOutOfRangeException argEx 
+        var isArgumentOutOfRange = exception is ArgumentOutOfRangeException argEx
             && argEx.Message.Contains("index");
 
         // Assert
@@ -164,7 +160,7 @@ public class ChatCompletionErrorHandlingTests
         var exception = new ArgumentOutOfRangeException("index", "Specified argument was out of the range of valid values.");
 
         // Act
-        var isExpectedError = exception is ArgumentOutOfRangeException && 
+        var isExpectedError = exception is ArgumentOutOfRangeException &&
                              exception.Message.Contains("index");
 
         // Assert

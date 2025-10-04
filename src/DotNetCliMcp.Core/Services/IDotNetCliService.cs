@@ -1,3 +1,5 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 namespace DotNetCliMcp.Core.Services;
 
 /// <summary>

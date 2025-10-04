@@ -8,4 +8,9 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pin the latest stable analyzers independently of SDK version -->
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

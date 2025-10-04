@@ -2,6 +2,24 @@
 
 ## Getting Started
 
+### 0. Onboard with the collaborator setup (recommended)
+
+If you have PowerShell Core (pwsh):
+
+```bash
+# From repo root
+pwsh -File scripts/setup-collaborator.ps1
+```
+
+- This verifies .NET 9+, restores tools and packages, formats code, builds, and runs tests.
+- To add a pre-commit hook that enforces formatting and tests:
+
+```bash
+pwsh -File scripts/setup-collaborator.ps1 -InstallGitHooks
+```
+
+If you don’t have pwsh yet on macOS: `brew install --cask powershell`. On Linux/Windows, install PowerShell 7+ from Microsoft.
+
 ### 1. Ensure Prerequisites
 
 ```bash

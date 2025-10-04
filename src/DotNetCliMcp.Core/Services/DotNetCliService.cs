@@ -1,3 +1,5 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,41 +10,35 @@ namespace DotNetCliMcp.Core.Services;
 /// <summary>
 /// Implementation of IDotNetCliService that executes dotnet CLI commands.
 /// </summary>
-public partial class DotNetCliService : IDotNetCliService
+public partial class DotNetCliService(ILogger<DotNetCliService> logger) : IDotNetCliService
 {
-    private readonly ILogger<DotNetCliService> _logger;
     private const string DotNetExecutable = "dotnet";
-
-    public DotNetCliService(ILogger<DotNetCliService> logger)
-    {
-        _logger = logger;
-    }
 
     /// <inheritdoc />
     public async Task<DotNetInfo> GetDotNetInfoAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Executing dotnet --info");
-        var output = await ExecuteDotNetCommandAsync("--info", cancellationToken);
+        logger.LogInformation("Executing dotnet --info");
+        var output = await this.ExecuteDotNetCommandAsync("--info", cancellationToken).ConfigureAwait(false);
 
-        return ParseDotNetInfo(output);
+        return this.ParseDotNetInfo(output);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<SdkInfo>> GetInstalledSdksAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Executing dotnet --list-sdks");
-        var output = await ExecuteDotNetCommandAsync("--list-sdks", cancellationToken);
+        logger.LogInformation("Executing dotnet --list-sdks");
+        var output = await this.ExecuteDotNetCommandAsync("--list-sdks", cancellationToken).ConfigureAwait(false);
 
-        return ParseSdkList(output);
+        return this.ParseSdkList(output);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<RuntimeInfo>> GetInstalledRuntimesAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Executing dotnet --list-runtimes");
-        var output = await ExecuteDotNetCommandAsync("--list-runtimes", cancellationToken);
+        logger.LogInformation("Executing dotnet --list-runtimes");
+        var output = await this.ExecuteDotNetCommandAsync("--list-runtimes", cancellationToken).ConfigureAwait(false);
 
-        return ParseRuntimeList(output);
+        return this.ParseRuntimeList(output);
     }
 
     private async Task<string> ExecuteDotNetCommandAsync(string arguments, CancellationToken cancellationToken)
@@ -83,23 +79,23 @@ public partial class DotNetCliService : IDotNetCliService
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            await process.WaitForExitAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
             if (process.ExitCode != 0)
             {
                 var error = errorBuilder.ToString();
-                _logger.LogError("dotnet {Arguments} failed with exit code {ExitCode}: {Error}",
+                logger.LogError("dotnet {Arguments} failed with exit code {ExitCode}: {Error}",
                     arguments, process.ExitCode, error);
                 throw new InvalidOperationException($"dotnet command failed: {error}");
             }
 
             var output = outputBuilder.ToString();
-            _logger.LogDebug("dotnet {Arguments} output: {Output}", arguments, output);
+            logger.LogDebug("dotnet {Arguments} output: {Output}", arguments, output);
             return output;
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
-            _logger.LogError(ex, "Failed to execute dotnet {Arguments}", arguments);
+            logger.LogError(ex, "Failed to execute dotnet {Arguments}", arguments);
             throw;
         }
     }
@@ -121,7 +117,7 @@ public partial class DotNetCliService : IDotNetCliService
         );
     }
 
-    private IReadOnlyList<SdkInfo> ParseSdkList(string output)
+    private List<SdkInfo> ParseSdkList(string output)
     {
         var sdks = new List<SdkInfo>();
         var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -139,11 +135,11 @@ public partial class DotNetCliService : IDotNetCliService
             }
         }
 
-        _logger.LogInformation("Found {Count} installed SDKs", sdks.Count);
+        logger.LogInformation("Found {Count} installed SDKs", sdks.Count);
         return sdks;
     }
 
-    private IReadOnlyList<RuntimeInfo> ParseRuntimeList(string output)
+    private List<RuntimeInfo> ParseRuntimeList(string output)
     {
         var runtimes = new List<RuntimeInfo>();
         var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -162,7 +158,7 @@ public partial class DotNetCliService : IDotNetCliService
             }
         }
 
-        _logger.LogInformation("Found {Count} installed runtimes", runtimes.Count);
+        logger.LogInformation("Found {Count} installed runtimes", runtimes.Count);
         return runtimes;
     }
 

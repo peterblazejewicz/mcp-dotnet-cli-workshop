@@ -1,3 +1,5 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 using System.ComponentModel;
 using System.Text.Json;
 using DotNetCliMcp.Core.Services;
@@ -10,25 +12,16 @@ namespace DotNetCliMcp.Core.Plugins;
 /// Semantic Kernel plugin that exposes .NET CLI capabilities as MCP-compatible functions.
 /// These functions can be called by LLMs to answer questions about the .NET environment.
 /// </summary>
-public class DotNetCliPlugin
+public class DotNetCliPlugin(IDotNetCliService cliService, ILogger<DotNetCliPlugin> logger)
 {
-    private readonly IDotNetCliService _cliService;
-    private readonly ILogger<DotNetCliPlugin> _logger;
-
-    public DotNetCliPlugin(IDotNetCliService cliService, ILogger<DotNetCliPlugin> logger)
-    {
-        _cliService = cliService;
-        _logger = logger;
-    }
-
     [KernelFunction("get_dotnet_info")]
     [Description("Gets comprehensive information about the installed .NET SDK and runtime environment, including version, OS, and architecture details")]
     public async Task<string> GetDotNetInfoAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Plugin function get_dotnet_info invoked");
-            var info = await _cliService.GetDotNetInfoAsync(cancellationToken);
+            logger.LogInformation("Plugin function get_dotnet_info invoked");
+            var info = await cliService.GetDotNetInfoAsync(cancellationToken).ConfigureAwait(false);
 
             var result = new
             {
@@ -43,7 +36,7 @@ public class DotNetCliPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing get_dotnet_info");
+            logger.LogError(ex, "Error executing get_dotnet_info");
             return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
@@ -54,8 +47,8 @@ public class DotNetCliPlugin
     {
         try
         {
-            _logger.LogInformation("Plugin function list_installed_sdks invoked");
-            var sdks = await _cliService.GetInstalledSdksAsync(cancellationToken);
+            logger.LogInformation("Plugin function list_installed_sdks invoked");
+            var sdks = await cliService.GetInstalledSdksAsync(cancellationToken).ConfigureAwait(false);
 
             var result = new
             {
@@ -67,7 +60,7 @@ public class DotNetCliPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing list_installed_sdks");
+            logger.LogError(ex, "Error executing list_installed_sdks");
             return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
@@ -78,8 +71,8 @@ public class DotNetCliPlugin
     {
         try
         {
-            _logger.LogInformation("Plugin function list_installed_runtimes invoked");
-            var runtimes = await _cliService.GetInstalledRuntimesAsync(cancellationToken);
+            logger.LogInformation("Plugin function list_installed_runtimes invoked");
+            var runtimes = await cliService.GetInstalledRuntimesAsync(cancellationToken).ConfigureAwait(false);
 
             var result = new
             {
@@ -91,7 +84,7 @@ public class DotNetCliPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing list_installed_runtimes");
+            logger.LogError(ex, "Error executing list_installed_runtimes");
             return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
@@ -104,8 +97,8 @@ public class DotNetCliPlugin
     {
         try
         {
-            _logger.LogInformation("Plugin function check_sdk_version invoked with version: {Version}", version);
-            var sdks = await _cliService.GetInstalledSdksAsync(cancellationToken);
+            logger.LogInformation("Plugin function check_sdk_version invoked with version: {Version}", version);
+            var sdks = await cliService.GetInstalledSdksAsync(cancellationToken).ConfigureAwait(false);
             var isInstalled = sdks.Any(s => s.Version == version);
 
             var result = new
@@ -122,7 +115,7 @@ public class DotNetCliPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing check_sdk_version");
+            logger.LogError(ex, "Error executing check_sdk_version");
             return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
@@ -133,8 +126,8 @@ public class DotNetCliPlugin
     {
         try
         {
-            _logger.LogInformation("Plugin function get_latest_sdk invoked");
-            var sdks = await _cliService.GetInstalledSdksAsync(cancellationToken);
+            logger.LogInformation("Plugin function get_latest_sdk invoked");
+            var sdks = await cliService.GetInstalledSdksAsync(cancellationToken).ConfigureAwait(false);
 
             if (sdks.Count == 0)
             {
@@ -155,7 +148,7 @@ public class DotNetCliPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing get_latest_sdk");
+            logger.LogError(ex, "Error executing get_latest_sdk");
             return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
