@@ -1,8 +1,8 @@
-# DotNet CLI MCP Project - Copilot Instructions
+# Prompt to .NET CLI with MCP - Copilot Instructions
 
 ## Project Overview
 
-This is a .NET 9 application that wraps the `dotnet` CLI tool and exposes its capabilities through Microsoft Semantic Kernel as MCP (Model Context Protocol) compatible functions. The application connects to a local LM Studio instance to enable LLM-powered interactions with .NET SDK/Runtime information.
+This is a .NET 9 application that wraps the `dotnet` CLI tool and exposes its capabilities through Microsoft Semantic Kernel as MCP (Model Context Protocol) compatible functions. In this sample we call the MCP tool PromptBridge. The application connects to a local LM Studio instance to enable LLM-powered interactions with .NET SDK/Runtime information.
 
 ## Architecture
 
@@ -103,7 +103,7 @@ dotnet format
 
 ### Logging Configuration
 - Console: Information level
-- File: `logs/dotnet-cli-mcp-{Date}.log` with daily rolling
+- File: `logs/mcp-dotnet-cli-workshop-{Date}.log` with daily rolling
 - Structured logging with Serilog
 
 ## Testing Strategy

@@ -3,7 +3,7 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
-namespace DotNetCliMcp.Core.Tests.Integration;
+namespace Mcp.DotNet.CliWorkshop.Core.Tests.Integration;
 
 /// <summary>
 /// Integration tests for chat completion error handling scenarios.

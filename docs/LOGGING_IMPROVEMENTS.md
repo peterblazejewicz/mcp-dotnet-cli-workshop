@@ -101,13 +101,13 @@ This template provides:
 ### Log Files
 Structured logs are also written to rotating daily files:
 ```csharp
-.WriteTo.File("logs/dotnet-cli-mcp-.log", rollingInterval: RollingInterval.Day)
+.WriteTo.File("logs/mcp-dotnet-cli-workshop-.log", rollingInterval: RollingInterval.Day)
 ```
 
 ## Visual Output Example
 
 ```
-[09:13:26 INF] === DotNet CLI MCP Assistant ===
+[09:13:26 INF] === Prompt to .NET CLI with MCP ===
 [09:13:26 INF] Connected to LM Studio at: http://127.0.0.1:1234/v1
 [09:13:26 WRN] Note: Make sure LM Studio is running with a model loaded
 [09:13:26 INF] Type your questions about .NET SDK/Runtime (or 'exit' to quit)

@@ -7,7 +7,7 @@ This document shows the key differences between the old mixed approach (Console 
 
 ### Before
 ```csharp
-Console.WriteLine("=== DotNet CLI MCP Assistant ===");
+Console.WriteLine("=== Prompt to .NET CLI with MCP ===");
 Console.WriteLine("Connected to LM Studio at: " + lmStudioEndpoint);
 Console.WriteLine("Note: Make sure LM Studio is running with a model loaded");
 Console.WriteLine("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");
@@ -16,7 +16,7 @@ Console.WriteLine();
 
 ### After
 ```csharp
-logger.LogInformation("=== DotNet CLI MCP Assistant ===");
+logger.LogInformation("=== Prompt to .NET CLI with MCP ===");
 logger.LogInformation("Connected to LM Studio at: {Endpoint}", lmStudioEndpoint);
 logger.LogWarning("Note: Make sure LM Studio is running with a model loaded");
 logger.LogInformation("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");
@@ -26,7 +26,7 @@ logger.LogInformation(string.Empty);
 ### Visual Output
 **Before:** Plain white text, no timestamps, no structure
 ```
-=== DotNet CLI MCP Assistant ===
+=== Prompt to .NET CLI with MCP ===
 Connected to LM Studio at: http://127.0.0.1:1234/v1
 Note: Make sure LM Studio is running with a model loaded
 Type your questions about .NET SDK/Runtime (or 'exit' to quit)

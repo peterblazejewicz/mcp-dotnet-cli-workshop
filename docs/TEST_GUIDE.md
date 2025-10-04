@@ -93,7 +93,7 @@ Watch for:
 - Token usage (should be significantly lower)
 
 ### 2. Application Logs
-Check `logs/dotnet-cli-mcp-YYYY-MM-DD.log` for:
+Check `logs/mcp-dotnet-cli-workshop-YYYY-MM-DD.log` for:
 ```
 [INFO] Plugin function list_installed_sdks invoked
 ```

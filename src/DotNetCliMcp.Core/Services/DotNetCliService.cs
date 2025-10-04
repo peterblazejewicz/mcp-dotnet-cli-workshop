@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 
-namespace DotNetCliMcp.Core.Services;
+namespace Mcp.DotNet.CliWorkshop.Core.Services;
 
 /// <summary>
 /// Implementation of IDotNetCliService that executes dotnet CLI commands.

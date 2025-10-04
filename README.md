@@ -1,6 +1,6 @@
-# DotNet CLI MCP - .NET SDK/Runtime Assistant
+# Prompt to .NET CLI with MCP
 
-A .NET 9 application that exposes `dotnet` CLI capabilities through Semantic Kernel as MCP (Model Context Protocol) functions, enabling LLM-powered interactions with your local .NET environment.
+A .NET 9 sample that uses PromptBridge (our MCP tool) to turn natural language into `dotnet` CLI commands via Semantic Kernel, enabling LLM-powered interactions with your local .NET environment.
 
 ## Features
 
@@ -39,7 +39,7 @@ Alternatively, proceed with the manual steps below.
 ### 1. Clone and Build
 
 ```bash
-cd cli-mcp
+cd mcp-dotnet-cli-workshop
  dotnet restore
  dotnet build
 ```
@@ -59,7 +59,7 @@ dotnet run --project src/DotNetCliMcp.App
 ### 4. Interact with the Assistant
 
 ```
-=== DotNet CLI MCP Assistant ===
+=== Prompt to .NET CLI with MCP ===
 Connected to LM Studio at: http://127.0.0.1:1234
 Type your questions about .NET SDK/Runtime (or 'exit' to quit)
 
@@ -93,7 +93,7 @@ The following functions are exposed to the LLM:
 ## Project Structure
 
 ```
-cli-mcp/
+mcp-dotnet-cli-workshop/
 ├── src/
 │   ├── DotNetCliMcp.App/          # Console application
 │   │   └── Program.cs              # Main entry point with SK setup
@@ -105,7 +105,7 @@ cli-mcp/
 │           └── DotNetCliPlugin.cs  # MCP function definitions
 ├── tests/
 │   └── DotNetCliMcp.Core.Tests/   # Unit and integration tests
-└── DotNetCliMcp.sln               # Solution file
+└── Mcp.DotNet.CliWorkshop.sln     # Solution file
 ```
 
 ## Configuration
@@ -122,7 +122,7 @@ const string lmStudioEndpoint = "http://127.0.0.1:1234";
 
 Logs are written to:
 - **Console**: Information level and above
-- **File**: `logs/dotnet-cli-mcp-{Date}.log` (daily rolling)
+- **File**: `logs/mcp-dotnet-cli-workshop-{Date}.log` (daily rolling)
 
 Adjust in `Program.cs`:
 
@@ -130,7 +130,7 @@ Adjust in `Program.cs`:
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()  // Change minimum level
     .WriteTo.Console()
-    .WriteTo.File("logs/dotnet-cli-mcp-.log", rollingInterval: RollingInterval.Day)
+.WriteTo.File("logs/mcp-dotnet-cli-workshop-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 ```
 

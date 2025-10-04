@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>Mcp.DotNet.CliWorkshop.Core</RootNamespace>
+    <AssemblyName>Mcp.DotNet.CliWorkshop.Core</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

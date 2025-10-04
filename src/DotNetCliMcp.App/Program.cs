@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using DotNetCliMcp.Core.Plugins;
-using DotNetCliMcp.Core.Services;
+using Mcp.DotNet.CliWorkshop.Core.Plugins;
+using Mcp.DotNet.CliWorkshop.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -37,13 +37,13 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(
         theme: theme,
         outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/dotnet-cli-mcp-.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("logs/mcp-dotnet-cli-workshop-.log", rollingInterval: RollingInterval.Day)
     .Enrich.FromLogContext()
     .CreateLogger();
 
 try
 {
-    Log.Information("Starting DotNet CLI MCP Application");
+    Log.Information("Starting Prompt to .NET CLI with MCP");
 
     // Create logger factory
     using var loggerFactory = new SerilogLoggerFactory(Log.Logger);
@@ -164,7 +164,7 @@ User: ""What's my latest SDK?""
 
 Remember: ONE tool call, EXACT function name, WAIT for results!");
 
-    logger.LogInformation("=== DotNet CLI MCP Assistant ===");
+    logger.LogInformation("=== Prompt to .NET CLI with MCP ===");
     logger.LogInformation("Connected to LM Studio at: {Endpoint}", LmStudioEndpoint);
     logger.LogWarning("Note: Make sure LM Studio is running with a model loaded");
     logger.LogInformation("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");

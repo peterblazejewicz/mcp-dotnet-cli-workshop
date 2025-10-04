@@ -2,11 +2,11 @@
 
 using System.ComponentModel;
 using System.Text.Json;
-using DotNetCliMcp.Core.Services;
+using Mcp.DotNet.CliWorkshop.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
-namespace DotNetCliMcp.Core.Plugins;
+namespace Mcp.DotNet.CliWorkshop.Core.Plugins;
 
 /// <summary>
 /// Semantic Kernel plugin that exposes .NET CLI capabilities as MCP-compatible functions.

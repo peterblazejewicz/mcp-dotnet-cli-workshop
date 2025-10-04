@@ -50,7 +50,7 @@ Before running the application:
 ### 3. Run the Application
 
 ```bash
-cd /Users/blazejewicz/develop/cli-mcp
+cd /Users/blazejewicz/develop/mcp-dotnet-cli-workshop
 
 # Build the solution
 dotnet build
@@ -62,7 +62,7 @@ dotnet run --project src/DotNetCliMcp.App
 ## Example Conversation
 
 ```
-=== DotNet CLI MCP Assistant ===
+=== Prompt to .NET CLI with MCP ===
 Connected to LM Studio at: http://127.0.0.1:1234
 Type your questions about .NET SDK/Runtime (or 'exit' to quit)
 

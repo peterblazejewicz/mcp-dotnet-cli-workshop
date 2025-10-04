@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Mcp.DotNet.CliWorkshop.Core.Tests</RootNamespace>
+    <AssemblyName>Mcp.DotNet.CliWorkshop.Core.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

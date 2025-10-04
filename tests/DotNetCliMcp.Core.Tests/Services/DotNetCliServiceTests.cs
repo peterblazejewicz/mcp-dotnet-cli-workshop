@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using DotNetCliMcp.Core.Services;
+using Mcp.DotNet.CliWorkshop.Core.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
-namespace DotNetCliMcp.Core.Tests.Services;
+namespace Mcp.DotNet.CliWorkshop.Core.Tests.Services;
 
 public class DotNetCliServiceTests
 {

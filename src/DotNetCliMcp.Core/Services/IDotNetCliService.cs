@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace DotNetCliMcp.Core.Services;
+namespace Mcp.DotNet.CliWorkshop.Core.Services;
 
 /// <summary>
 /// Service for executing dotnet CLI commands and retrieving .NET SDK/Runtime information.
