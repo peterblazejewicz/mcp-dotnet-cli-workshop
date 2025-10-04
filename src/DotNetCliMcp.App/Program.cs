@@ -26,7 +26,7 @@ try
     var httpTimeoutSeconds = configuration.GetValue<int?>("OpenAI:HttpTimeoutSeconds") ?? 300;
     var connectTimeoutSeconds = configuration.GetValue<int?>("OpenAI:ConnectTimeoutSeconds") ?? 15;
     var httpTimeout = httpTimeoutSeconds <= 0
-        ? System.Threading.Timeout.InfiniteTimeSpan
+        ? Timeout.InfiniteTimeSpan
         : TimeSpan.FromSeconds(httpTimeoutSeconds);
 
     if (string.IsNullOrWhiteSpace(endpoint))
@@ -248,7 +248,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
                 history,
                 settings,
                 kernel
-            ))
+            ).ConfigureAwait(false))
             {
                 var piece = update?.Content;
                 if (!string.IsNullOrEmpty(piece))
