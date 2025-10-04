@@ -1,9 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-
-namespace Mcp.DotNet.CliWorkshop.Core.Tests.Integration;
+﻿namespace Mcp.DotNet.CliWorkshop.Core.Tests.Integration;
 
 /// <summary>
 /// Integration tests for chat completion error handling scenarios.

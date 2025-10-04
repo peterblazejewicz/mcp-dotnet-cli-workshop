@@ -1,9 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
 
 namespace Mcp.DotNet.CliWorkshop.Core.Services;
 

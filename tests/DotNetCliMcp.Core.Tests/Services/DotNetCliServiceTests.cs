@@ -1,8 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using Mcp.DotNet.CliWorkshop.Core.Services;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
+﻿using Mcp.DotNet.CliWorkshop.Core.Services;
 
 namespace Mcp.DotNet.CliWorkshop.Core.Tests.Services;
 

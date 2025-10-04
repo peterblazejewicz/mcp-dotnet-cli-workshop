@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace Mcp.DotNet.CliWorkshop.Core.Services;
+﻿namespace Mcp.DotNet.CliWorkshop.Core.Services;
 
 /// <summary>
 /// Service for executing dotnet CLI commands and retrieving .NET SDK/Runtime information.
@@ -25,31 +23,3 @@ public interface IDotNetCliService
     /// </summary>
     Task<IReadOnlyList<RuntimeInfo>> GetInstalledRuntimesAsync(CancellationToken cancellationToken = default);
 }
-
-/// <summary>
-/// Represents comprehensive .NET environment information.
-/// </summary>
-public record DotNetInfo(
-    string SdkVersion,
-    string RuntimeVersion,
-    string OsVersion,
-    string Architecture,
-    string RawOutput
-);
-
-/// <summary>
-/// Represents an installed .NET SDK.
-/// </summary>
-public record SdkInfo(
-    string Version,
-    string Path
-);
-
-/// <summary>
-/// Represents an installed .NET runtime.
-/// </summary>
-public record RuntimeInfo(
-    string Name,
-    string Version,
-    string Path
-);

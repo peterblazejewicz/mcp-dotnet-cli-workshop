@@ -1,58 +1,39 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿using DotNetCliMcp.App.Infrastructure.Logging;
 
-using Mcp.DotNet.CliWorkshop.Core.Plugins;
-using Mcp.DotNet.CliWorkshop.Core.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Serilog;
-using Serilog.Extensions.Logging;
-using Serilog.Sinks.SystemConsole.Themes;
-
-// Configure Serilog for structured logging with colored console output
-var theme = new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
-{
-    [ConsoleThemeStyle.Text] = "\x1b[0m",
-    [ConsoleThemeStyle.SecondaryText] = "\x1b[90m",
-    [ConsoleThemeStyle.TertiaryText] = "\x1b[90m",
-    [ConsoleThemeStyle.Invalid] = "\x1b[33m",
-    [ConsoleThemeStyle.Null] = "\x1b[95m",
-    [ConsoleThemeStyle.Name] = "\x1b[93m",
-    [ConsoleThemeStyle.String] = "\x1b[96m",
-    [ConsoleThemeStyle.Number] = "\x1b[95m",
-    [ConsoleThemeStyle.Boolean] = "\x1b[95m",
-    [ConsoleThemeStyle.Scalar] = "\x1b[95m",
-    [ConsoleThemeStyle.LevelVerbose] = "\x1b[37m",
-    [ConsoleThemeStyle.LevelDebug] = "\x1b[37m",
-    [ConsoleThemeStyle.LevelInformation] = "\x1b[36m",  // Cyan for info
-    [ConsoleThemeStyle.LevelWarning] = "\x1b[33m",      // Yellow for warnings
-    [ConsoleThemeStyle.LevelError] = "\x1b[31m",        // Red for errors
-    [ConsoleThemeStyle.LevelFatal] = "\x1b[97;91m"      // White on Red for fatal
-});
-
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .WriteTo.Console(
-        theme: theme,
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/mcp-dotnet-cli-workshop-.log", rollingInterval: RollingInterval.Day)
-    .Enrich.FromLogContext()
-    .CreateLogger();
 
 try
 {
+    // Build configuration (JSON + environment variables)
+    var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    // Initialize logging
+    using var loggerFactory = LoggingBootstrapper.Initialize(configuration);
+    var logger = loggerFactory.CreateLogger<Program>();
     Log.Information("Starting Prompt to .NET CLI with MCP");
 
-    // Create logger factory
-    using var loggerFactory = new SerilogLoggerFactory(Log.Logger);
-    var logger = loggerFactory.CreateLogger<Program>();
-
     // Configuration for LM Studio (local OpenAI-compatible endpoint)
-    // The endpoint should include /v1 to match the OpenAI-compatible API structure used by LM Studio
-    const string LmStudioEndpoint = "http://127.0.0.1:1234/v1";
-    const string ModelName = "local-model"; // LM Studio uses this as default
+    var endpoint = configuration["OpenAI:Endpoint"];
+    var modelName = configuration["OpenAI:Model"];
+    var apiKey = configuration["OpenAI:ApiKey"];
+
+    if (string.IsNullOrWhiteSpace(endpoint))
+    {
+        throw new InvalidOperationException("OpenAI:Endpoint configuration is required. Set it in appsettings.json or via environment variable OpenAI__Endpoint.");
+    }
+    if (string.IsNullOrWhiteSpace(modelName))
+    {
+        throw new InvalidOperationException("OpenAI:Model configuration is required. Set it in appsettings.json or via environment variable OpenAI__Model.");
+    }
+    if (string.IsNullOrWhiteSpace(apiKey))
+    {
+        throw new InvalidOperationException("OpenAI:ApiKey configuration is required. Set it in appsettings.json or via environment variable OpenAI__ApiKey.");
+    }
 
     // Create Semantic Kernel with OpenAI-compatible chat completion service
     var kernelBuilder = Kernel.CreateBuilder();
@@ -60,14 +41,15 @@ try
     // Configure OpenAI chat completion pointing to LM Studio
     // The endpoint should include /v1 to match OpenAI API structure
     kernelBuilder.AddOpenAIChatCompletion(
-        modelId: ModelName,
-        apiKey: "not-needed", // LM Studio doesn't require API key
-        endpoint: new Uri(LmStudioEndpoint),
+        modelId: modelName,
+        apiKey: apiKey,
+        endpoint: new Uri(endpoint),
         httpClient: new HttpClient()
     );
 
     // Register services
     kernelBuilder.Services.AddSingleton(loggerFactory);
+    kernelBuilder.Services.AddSingleton<IConfiguration>(configuration);
     kernelBuilder.Services.AddSingleton<IDotNetCliService>(sp =>
         new DotNetCliService(loggerFactory.CreateLogger<DotNetCliService>()));
 
@@ -89,7 +71,7 @@ try
     // Get chat completion service
     var chatService = kernel.GetRequiredService<IChatCompletionService>();
 
-    // Create chat history with improved system prompt for better tool calling
+    // Create a chat history with improved system prompt for better tool calling
     var history = new ChatHistory();
     history.AddSystemMessage(@"You are a .NET SDK assistant that answers questions about installed .NET SDKs and runtimes.
 
@@ -165,7 +147,7 @@ User: ""What's my latest SDK?""
 Remember: ONE tool call, EXACT function name, WAIT for results!");
 
     logger.LogInformation("=== Prompt to .NET CLI with MCP ===");
-    logger.LogInformation("Connected to LM Studio at: {Endpoint}", LmStudioEndpoint);
+    logger.LogInformation("Connected to LM Studio at: {Endpoint}", endpoint);
     logger.LogWarning("Note: Make sure LM Studio is running with a model loaded");
     logger.LogInformation("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");
     logger.LogInformation(string.Empty);
@@ -198,7 +180,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
         {
             logger.LogInformation("Processing user query: {Query}", userInput);
 
-            // Get response with automatic function calling
+            // Get a response with automatic function calling
             var response = await chatService.GetChatMessageContentAsync(
                 history,
                 settings,
@@ -254,7 +236,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogError("  3. The loaded model doesn't support function calling");
             logger.LogError("  4. LM Studio version incompatibility");
             logger.LogWarning("Please verify:");
-            logger.LogWarning("  - LM Studio is running at {Endpoint}", LmStudioEndpoint);
+            logger.LogWarning("  - LM Studio is running at {Endpoint}", endpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             logger.LogWarning("  - The model supports chat completions");
             // Remove the last user message to allow retry
@@ -269,7 +251,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogError("Error: Could not connect to LM Studio.");
             logger.LogWarning("Please ensure:");
             logger.LogWarning("  - LM Studio is running");
-            logger.LogWarning("  - The endpoint {Endpoint} is accessible", LmStudioEndpoint);
+            logger.LogWarning("  - The endpoint {Endpoint} is accessible", endpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             // Remove the last user message to allow retry
             if (history.Count > 0)
@@ -284,7 +266,7 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogError("Details: {Message}", ex.Message);
             logger.LogWarning("Please ensure:");
             logger.LogWarning("  - LM Studio is running");
-            logger.LogWarning("  - The endpoint {Endpoint} is accessible", LmStudioEndpoint);
+            logger.LogWarning("  - The endpoint {Endpoint} is accessible", endpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             logger.LogWarning("  - The model is compatible with OpenAI chat completions");
             // Remove the last user message to allow retry

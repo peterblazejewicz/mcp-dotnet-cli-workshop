@@ -1,10 +1,6 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text.Json;
 using Mcp.DotNet.CliWorkshop.Core.Services;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 
 namespace Mcp.DotNet.CliWorkshop.Core.Plugins;
 
