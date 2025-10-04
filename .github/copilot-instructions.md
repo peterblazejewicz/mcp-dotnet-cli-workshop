@@ -15,7 +15,7 @@ This is a .NET 9 application that wraps the `dotnet` CLI tool and exposes its ca
 
 2. **DotNetCliMcp.App** (Console Application)
    - Interactive chat application using Semantic Kernel
-   - Configured to use local LM Studio at `http://127.0.0.1:1234`
+- Configured to use local LM Studio at `http://127.0.0.1:1234/v1`
    - Implements automatic function calling via `ToolCallBehavior.AutoInvokeKernelFunctions`
 
 3. **DotNetCliMcp.Core.Tests** (Test Project)
@@ -96,7 +96,7 @@ dotnet format
 ## Configuration
 
 ### LM Studio Setup
-- Endpoint: `http://127.0.0.1:1234`
+- Endpoint: `http://127.0.0.1:1234/v1`
 - Uses OpenAI-compatible API
 - No API key required (local deployment)
 - Model selection happens in LM Studio UI

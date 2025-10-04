@@ -48,7 +48,7 @@ cd mcp-dotnet-cli-workshop
 
 1. Download and install LM Studio
 2. Load your preferred LLM model
-3. Start the local server (default: `http://127.0.0.1:1234`)
+3. Start the local server (OpenAI-compatible API base: `http://127.0.0.1:1234/v1`)
 
 ### 3. Run the Application
 
@@ -117,7 +117,7 @@ mcp-dotnet-cli-workshop/
 Edit `Program.cs` to change the LM Studio endpoint:
 
 ```csharp
-const string lmStudioEndpoint = "http://127.0.0.1:1234";
+const string lmStudioEndpoint = "http://127.0.0.1:1234/v1";
 ```
 
 ### Logging Configuration
@@ -181,7 +181,7 @@ dotnet build -c Release
 
 Ensure LM Studio is running and the server is started:
 - Check LM Studio's server status
-- Verify the endpoint URL matches (default: `http://127.0.0.1:1234`)
+- Verify the endpoint URL matches (default: `http://127.0.0.1:1234/v1`)
 
 ### "dotnet command not found"
 

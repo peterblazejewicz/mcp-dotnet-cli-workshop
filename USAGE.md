@@ -45,7 +45,7 @@ Before running the application:
    - Llama 3.1 8B Instruct
    - Qwen 2.5 7B Instruct)
 4. Click "Start Server"
-5. Verify the server is running at `http://127.0.0.1:1234`
+5. Verify the OpenAI-compatible API base is `http://127.0.0.1:1234/v1`
 
 ### 3. Run the Application
 

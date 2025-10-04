@@ -50,7 +50,7 @@ try
     var logger = loggerFactory.CreateLogger<Program>();
 
     // Configuration for LM Studio (local OpenAI-compatible endpoint)
-    // LM Studio expects the base URL without /v1 path - it will append it automatically
+    // The endpoint should include /v1 to match the OpenAI-compatible API structure used by LM Studio
     const string LmStudioEndpoint = "http://127.0.0.1:1234/v1";
     const string ModelName = "local-model"; // LM Studio uses this as default
 
