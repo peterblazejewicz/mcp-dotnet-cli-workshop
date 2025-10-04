@@ -1,5 +1,39 @@
 # Prompt to .NET CLI with MCP
 
+```bash path=null start=null
+dotnet run --project src/DotNetCliMcp.App
+
+[17:24:38 INF] Starting Prompt to .NET CLI with MCP
+[17:24:38 INF] Semantic Kernel initialized with 1 plugins
+[17:24:38 INF] Available functions: get_dotnet_info, list_installed_sdks, list_installed_runtimes, check_sdk_version, get_latest_sdk
+[17:24:38 INF] === Prompt to .NET CLI with MCP ===
+[17:24:38 INF] Connected to LM Studio at: http://127.0.0.1:1234/v1
+[17:24:38 WRN] Note: Make sure LM Studio is running with a model loaded
+[17:24:38 INF] Type your questions about .NET SDK/Runtime (or 'exit' to quit)
+[17:24:38 INF] 
+You: give me a list of .net sdks installed on this machine
+[17:24:52 INF] Processing user query: give me a list of .net sdks installed on this machine
+[17:26:18 INF] Plugin function list_installed_sdks invoked
+[17:26:18 INF] Executing dotnet --list-sdks
+[17:26:18 INF] Found 9 installed SDKs
+
+Assistant: Here's the list of .NET SDKs installed on this machine based on the tool result:
+
+- **Version: 6.0.419**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 8.0.120**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 8.0.303**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 8.0.403**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 8.0.404**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 9.0.100**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 9.0.103**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 9.0.203**, Path: `/usr/local/share/dotnet/sdk`
+- **Version: 9.0.302**, Path: `/usr/local/share/dotnet/sdk`
+
+If you have any questions or need further details, let me know!
+
+You:
+```
+
 A .NET 9 sample that uses PromptBridge (our MCP tool) to turn natural language into `dotnet` CLI commands via Semantic Kernel, enabling LLM-powered interactions with your local .NET environment.
 
 ## Features
