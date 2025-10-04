@@ -4,11 +4,27 @@ A .NET 9 sample that uses PromptBridge (our MCP tool) to turn natural language i
 
 ## Features
 
-- 🤖 **Local LLM Integration**: Connects to LM Studio for privacy-focused AI interactions
-- 🔧 **DotNet CLI Wrapper**: Query SDK versions, runtimes, and environment details
-- 🧩 **MCP Functions**: Semantic Kernel plugin with tool calling support
-- 📝 **Structured Logging**: Serilog with console and file output
-- ✅ **Comprehensive Testing**: xUnit 3 with NSubstitute mocking
+- **Local LLM Integration**: Connects to LM Studio for privacy-focused AI interactions
+- **DotNet CLI Wrapper**: Query SDK versions, runtimes, and environment details
+- **MCP Functions**: Semantic Kernel plugin with tool calling support
+- **Structured Logging**: Serilog with console and file output
+- **Comprehensive Testing**: xUnit 3 with NSubstitute mocking
+
+## Architecture
+
+```mermaid
+flowchart LR
+  user[Developer] -->|Natural language| app[DotNetCliMcp.App]
+  app --> sk[Semantic Kernel]
+  sk --> plugin[DotNetCliPlugin]
+  plugin --> service[DotNetCliService]
+  service --> cli[dotnet CLI]
+  sk <-->|Tool call / JSON| llm[LM Studio]
+  cli --> service
+  service --> plugin
+  plugin --> sk
+  sk --> app
+```
 
 ## Prerequisites
 
@@ -23,14 +39,10 @@ A .NET 9 sample that uses PromptBridge (our MCP tool) to turn natural language i
 If you have PowerShell Core (pwsh) installed, you can bootstrap everything with one command:
 
 ```bash
+# setup (from repo root)
 pwsh -File scripts/setup-collaborator.ps1
-```
 
-- Adds no global settings; only affects this repo
-- Restores local tools, formats code, builds, and runs tests
-- Optionally install git hooks:
-
-```bash
+# optional: install git hooks
 pwsh -File scripts/setup-collaborator.ps1 -InstallGitHooks
 ```
 
@@ -138,21 +150,14 @@ Log.Logger = new LoggerConfiguration()
 
 ## Development
 
-### Run Tests
-
 ```bash
+# test
 dotnet test
-```
 
-### Format Code
-
-```bash
+# format
 dotnet format
-```
 
-### Build Release
-
-```bash
+# build (release)
 dotnet build -c Release
 ```
 
@@ -167,13 +172,28 @@ dotnet build -c Release
 
 ## How It Works
 
-1. **User Input**: You ask a question about .NET SDK/Runtime
-2. **LLM Processing**: LM Studio's LLM receives the query and system instructions
-3. **Tool Selection**: The LLM decides which MCP function(s) to call
-4. **Function Execution**: Semantic Kernel automatically invokes the selected functions
-5. **CLI Execution**: Functions execute `dotnet` commands via `Process`
-6. **Response Generation**: Results are parsed and returned to the LLM
-7. **Final Answer**: LLM synthesizes information into a natural language response
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant A as App (Console)
+  participant L as LLM (LM Studio)
+  participant K as Semantic Kernel
+  participant P as DotNetCliPlugin
+  participant D as dotnet CLI
+
+  U->>A: Ask ".NET SDKs installed?"
+  A->>L: Prompt + function schemas
+  L->>K: Tool call: DotNetCli_list_installed_sdks
+  K->>P: Invoke kernel function
+  P->>D: Run "dotnet --list-sdks"
+  D-->>P: Raw output
+  P-->>K: Parsed JSON result
+  K-->>L: Tool result
+  L-->>A: Natural language answer
+  A-->>U: Versions listed
+```
+
+In short: the LLM selects an MCP function, Semantic Kernel auto-invokes it, results are returned and summarized into a concise answer.
 
 ## Troubleshooting
 
@@ -196,6 +216,12 @@ dotnet --version
 - Verify the model supports function/tool calling
 - Check logs in `logs/` directory for errors
 
+## Acknowledgments
+
+- Built with [Semantic Kernel](https://github.com/microsoft/semantic-kernel)
+- Powered by [LM Studio](https://lmstudio.ai/)
+- Inspired by the Model Context Protocol (MCP) pattern
+
 ## Contributing
 
 This is a demonstration project. Feel free to fork and extend it with:
@@ -207,9 +233,3 @@ This is a demonstration project. Feel free to fork and extend it with:
 ## License
 
 MIT License - See LICENSE file for details
-
-## Acknowledgments
-
-- Built with [Semantic Kernel](https://github.com/microsoft/semantic-kernel)
-- Powered by [LM Studio](https://lmstudio.ai/)
-- Inspired by the Model Context Protocol (MCP) pattern

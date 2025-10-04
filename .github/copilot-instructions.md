@@ -129,3 +129,13 @@ Potential areas for expansion:
 - All LLM interactions stay on the local machine
 - The application can work offline if LM Studio is available
 - MCP functions are synchronous wrappers around async operations
+
+## Style Guidance
+
+- Prefer diagrams over prose; use Mermaid for architecture and sequence flows.
+- Keep README.md as the single source of truth. Do not create USAGE.md or a docs/ directory.
+- Do not re-document Microsoft features; link to official Microsoft docs instead.
+- When adding or updating features, update diagrams and provide minimal bullet points rather than long paragraphs.
+- Place testing guidance at the end of README under "Next Steps / Testing" and keep it concise.
+- Avoid duplicating content already covered in README.
+- Keep examples minimal and task-focused when proposing changes in PRs.
