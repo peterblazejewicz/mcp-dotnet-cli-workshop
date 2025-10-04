@@ -59,15 +59,17 @@ dotnet run --project src/DotNetCliMcp.App
 ### 4. Interact with the Assistant
 
 ```
-=== Prompt to .NET CLI with MCP ===
-Connected to LM Studio at: http://127.0.0.1:1234
-Type your questions about .NET SDK/Runtime (or 'exit' to quit)
+$ dotnet run --project src/DotNetCliMcp.App
 
+[16:11:36 INF] Starting Prompt to .NET CLI with MCP
+[16:11:36 INF] Semantic Kernel initialized with 1 plugins
+[16:11:36 INF] Available functions: get_dotnet_info, list_installed_sdks, list_installed_runtimes, check_sdk_version, get_latest_sdk
+[16:11:36 INF] === Prompt to .NET CLI with MCP ===
+[16:11:36 INF] Connected to LM Studio at: http://127.0.0.1:1234/v1
+[16:11:36 WRN] Note: Make sure LM Studio is running with a model loaded
+[16:11:36 INF] Type your questions about .NET SDK/Runtime (or 'exit' to quit)
+[16:11:36 INF] 
 You: What version of .NET do I have installed?
-Assistant: You have .NET SDK version 9.0.302 installed...
-
-You: Do I have .NET 8.0.202 SDK?
-Assistant: Let me check your installed SDKs...
 ```
 
 ## Example Queries
