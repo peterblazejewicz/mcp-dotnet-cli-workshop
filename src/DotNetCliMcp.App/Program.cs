@@ -22,6 +22,13 @@ try
     var modelName = configuration["OpenAI:Model"];
     var apiKey = configuration["OpenAI:ApiKey"];
 
+    // HTTP timeouts (configurable)
+    var httpTimeoutSeconds = configuration.GetValue<int?>("OpenAI:HttpTimeoutSeconds") ?? 300;
+    var connectTimeoutSeconds = configuration.GetValue<int?>("OpenAI:ConnectTimeoutSeconds") ?? 15;
+    var httpTimeout = httpTimeoutSeconds <= 0
+        ? System.Threading.Timeout.InfiniteTimeSpan
+        : TimeSpan.FromSeconds(httpTimeoutSeconds);
+
     if (string.IsNullOrWhiteSpace(endpoint))
     {
         throw new InvalidOperationException("OpenAI:Endpoint configuration is required. Set it in appsettings.json or via environment variable OpenAI__Endpoint.");
@@ -40,11 +47,23 @@ try
 
     // Configure OpenAI chat completion pointing to LM Studio
     // The endpoint should include /v1 to match OpenAI API structure
+    // Configure resilient HttpClient for LM Studio
+    var handler = new SocketsHttpHandler
+    {
+        ConnectTimeout = TimeSpan.FromSeconds(connectTimeoutSeconds),
+        AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+        PooledConnectionLifetime = TimeSpan.FromMinutes(10)
+    };
+    var httpClient = new HttpClient(handler)
+    {
+        Timeout = httpTimeout
+    };
+
     kernelBuilder.AddOpenAIChatCompletion(
         modelId: modelName,
         apiKey: apiKey,
         endpoint: new Uri(endpoint),
-        httpClient: new HttpClient()
+        httpClient: httpClient
     );
 
     // Register services
@@ -148,17 +167,22 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
 
     logger.LogInformation("=== Prompt to .NET CLI with MCP ===");
     logger.LogInformation("Connected to LM Studio at: {Endpoint}", endpoint);
+    logger.LogInformation("HTTP timeout: {HttpTimeoutSeconds}s (0=infinite), Connect timeout: {ConnectTimeoutSeconds}s", httpTimeoutSeconds, connectTimeoutSeconds);
     logger.LogWarning("Note: Make sure LM Studio is running with a model loaded");
     logger.LogInformation("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");
     logger.LogInformation(string.Empty);
 
     // Interactive chat loop with optimized settings for tool calling
     // Note: For reasoning models like DeepSeek R1, avoid stop sequences that block reasoning
+    // Configure generation settings (configurable via appsettings)
+    var temperature = configuration.GetValue<double?>("OpenAI:Temperature") ?? 0.2;
+    var maxTokens = configuration.GetValue<int?>("OpenAI:MaxTokens") ?? 1500;
+
     var settings = new OpenAIPromptExecutionSettings
     {
         ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
-        Temperature = 0.2,  // Slightly higher for reasoning models (was 0.1)
-        MaxTokens = 1500   // Allow some reasoning space (was 1000)
+        Temperature = temperature,
+        MaxTokens = maxTokens
         // StopSequences removed - they prevent reasoning models from working
     };
 
@@ -180,38 +204,102 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
         {
             logger.LogInformation("Processing user query: {Query}", userInput);
 
-            // Get a response with automatic function calling
-            var response = await chatService.GetChatMessageContentAsync(
+            // Stream response with automatic function calling
+            // Print label once, then stream tokens in magenta
+            var sb = new System.Text.StringBuilder();
+            var consoleLock = new object();
+            Console.Write("\x1b[35m\nAssistant: ");
+
+            // Inline spinner that appears during idle periods (e.g., while tools run)
+            var lastChunkAt = DateTime.UtcNow;
+            using var spinnerCts = new CancellationTokenSource();
+            var spinnerRunning = false;
+            var spinnerTask = Task.Run(async () =>
+            {
+                var frames = new[] { '|', '/', '-', '\\' };
+                var idx = 0;
+                while (!spinnerCts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(125, spinnerCts.Token).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+
+                    var idle = (DateTime.UtcNow - lastChunkAt).TotalMilliseconds > 500;
+                    if (idle && !spinnerRunning)
+                    {
+                        spinnerRunning = true;
+                        lock (consoleLock) { Console.Write(" "); } // allocate spinner cell
+                    }
+
+                    if (spinnerRunning)
+                    {
+                        var ch = frames[idx++ % frames.Length];
+                        lock (consoleLock) { Console.Write($"\b{ch}"); }
+                    }
+                }
+            }, spinnerCts.Token);
+
+            await foreach (var update in chatService.GetStreamingChatMessageContentsAsync(
                 history,
                 settings,
                 kernel
-            ).ConfigureAwait(false);
-
-            if (response?.Content != null)
+            ))
             {
-                var content = response.Content;
+                var piece = update?.Content;
+                if (!string.IsNullOrEmpty(piece))
+                {
+                    // Clear spinner before printing tokens
+                    if (spinnerRunning)
+                    {
+                        spinnerRunning = false;
+                        lock (consoleLock) { Console.Write("\b \b"); }
+                    }
 
-                // Strip out any reasoning tags that may have leaked through
-                content = System.Text.RegularExpressions.Regex.Replace(
-                    content,
-                    @"<think>.*?</think>",
-                    "",
-                    System.Text.RegularExpressions.RegexOptions.Singleline
-                );
-                content = System.Text.RegularExpressions.Regex.Replace(
-                    content,
-                    @"<reasoning>.*?</reasoning>",
-                    "",
-                    System.Text.RegularExpressions.RegexOptions.Singleline
-                );
+                    lock (consoleLock) { Console.Write(piece); }
+                    sb.Append(piece);
+                    lastChunkAt = DateTime.UtcNow;
+                }
+            }
 
-                // Trim any extra whitespace from cleaning
-                content = content.Trim();
+            // Stop spinner and clean up
+            spinnerCts.Cancel();
+            try { await spinnerTask.ConfigureAwait(false); } catch { }
+            if (spinnerRunning)
+            {
+                lock (consoleLock) { Console.Write("\b \b"); }
+            }
 
+            // Reset color and finalize lines
+            Console.WriteLine("\x1b[0m");
+            Console.WriteLine();
+
+            var content = sb.ToString();
+
+            // Strip out any reasoning tags that may have leaked through
+            content = System.Text.RegularExpressions.Regex.Replace(
+                content,
+                @"<think>.*?</think>",
+                "",
+                System.Text.RegularExpressions.RegexOptions.Singleline
+            );
+            content = System.Text.RegularExpressions.Regex.Replace(
+                content,
+                @"<reasoning>.*?</reasoning>",
+                "",
+                System.Text.RegularExpressions.RegexOptions.Singleline
+            );
+
+            // Trim any extra whitespace from cleaning
+            content = content.Trim();
+
+            if (!string.IsNullOrEmpty(content))
+            {
                 history.AddAssistantMessage(content);
-                // Use custom color for assistant responses (magenta)
-                Console.WriteLine($"\x1b[35m\nAssistant: {content}\x1b[0m");
-                Console.WriteLine();
             }
             else
             {
@@ -239,6 +327,18 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
             logger.LogWarning("  - LM Studio is running at {Endpoint}", endpoint);
             logger.LogWarning("  - A model is loaded in LM Studio");
             logger.LogWarning("  - The model supports chat completions");
+            // Remove the last user message to allow retry
+            if (history.Count > 0)
+            {
+                history.RemoveAt(history.Count - 1);
+            }
+        }
+        catch (TaskCanceledException ex)
+        {
+            logger.LogError(ex, "Request timed out after {TimeoutSeconds}s (HttpClient)", httpTimeoutSeconds);
+            logger.LogError("Error: The LLM request exceeded the configured timeout.");
+            logger.LogWarning("You can increase OpenAI:HttpTimeoutSeconds (env: OpenAI__HttpTimeoutSeconds) or set it to 0 for no timeout.");
+            logger.LogWarning("LM Studio logs showing 'Client disconnected' at ~{TimeoutSeconds}s likely correspond to this timeout.", httpTimeoutSeconds);
             // Remove the last user message to allow retry
             if (history.Count > 0)
             {
