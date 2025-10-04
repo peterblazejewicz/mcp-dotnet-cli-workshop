@@ -170,12 +170,13 @@ Remember: ONE tool call, EXACT function name, WAIT for results!");
     logger.LogInformation(string.Empty);
 
     // Interactive chat loop with optimized settings for tool calling
+    // Note: For reasoning models like DeepSeek R1, avoid stop sequences that block reasoning
     var settings = new OpenAIPromptExecutionSettings
     {
         ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
-        Temperature = 0.1,  // Lower temperature for more deterministic tool selection
-        MaxTokens = 1000,   // Reduced tokens to discourage lengthy reasoning
-        StopSequences = ["<think>", "</think>", "<reasoning>", "</reasoning>"]  // Prevent reasoning tag leakage
+        Temperature = 0.2,  // Slightly higher for reasoning models (was 0.1)
+        MaxTokens = 1500   // Allow some reasoning space (was 1000)
+        // StopSequences removed - they prevent reasoning models from working
     };
 
     while (true)
