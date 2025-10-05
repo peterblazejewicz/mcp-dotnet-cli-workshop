@@ -6,10 +6,6 @@
 /// </summary>
 public class ChatCompletionErrorHandlingTests
 {
-    public ChatCompletionErrorHandlingTests()
-    {
-    }
-
     [Fact]
     public async Task ChatCompletion_WithInvalidEndpoint_ShouldThrowHttpOperationExceptionAsync()
     {

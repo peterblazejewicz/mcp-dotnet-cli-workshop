@@ -11,6 +11,13 @@
 
   <ItemGroup>
     <!-- Pin the latest stable analyzers independently of SDK version -->
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Include a solution-level GlobalUsings.cs in all projects (if present at solution root) -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)GlobalUsings.cs"
+             Link="GlobalUsings.cs"
+             Condition="Exists('$(MSBuildThisFileDirectory)GlobalUsings.cs')" />
   </ItemGroup>
 </Project>
