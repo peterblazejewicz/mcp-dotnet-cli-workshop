@@ -41,6 +41,8 @@ A .NET 9 sample that uses PromptBridge (our MCP tool) to turn natural language i
 - **Local LLM Integration**: Connects to LM Studio for privacy-focused AI interactions
 - **DotNet CLI Wrapper**: Query SDK versions, runtimes, and environment details
 - **MCP Functions**: Semantic Kernel plugin with tool calling support
+- **Configuration Providers**: Uses appsettings.json and environment variables for flexible configuration
+- **Enhanced System Prompts**: Optimized prompts for better tool calling and reasoning suppression
 - **Structured Logging**: Serilog with console and file output
 - **Comprehensive Testing**: xUnit 3 with NSubstitute mocking
 
@@ -132,6 +134,7 @@ The following functions are exposed to the LLM:
 
 | Function | Description |
 |----------|-------------|
+| `get_effective_sdk` | Get the effective .NET SDK version in use (respects global.json) ⭐ |
 | `get_dotnet_info` | Get comprehensive .NET environment information |
 | `list_installed_sdks` | List all installed .NET SDKs |
 | `list_installed_runtimes` | List all installed runtimes |
@@ -158,29 +161,36 @@ mcp-dotnet-cli-workshop/
 
 ## Configuration
 
+The application uses a combination of `appsettings.json` and environment variables for configuration.
+
 ### LM Studio Configuration
 
-Edit `Program.cs` to change the LM Studio endpoint:
+Edit `src/DotNetCliMcp.App/appsettings.json`:
 
-```csharp
-const string lmStudioEndpoint = "http://127.0.0.1:1234/v1";
+```json path=null start=null
+{
+  "OpenAI": {
+    "Endpoint": "http://127.0.0.1:1234/v1",
+    "ModelName": "your-model-name",
+    "Temperature": 0.1,
+    "MaxTokens": 1500
+  }
+}
+```
+
+Or override via environment variables:
+```bash
+export OpenAI__Endpoint="http://127.0.0.1:1234/v1"
+export OpenAI__Temperature="0.2"
 ```
 
 ### Logging Configuration
 
-Logs are written to:
+Logs are configured via `appsettings.json`:
 - **Console**: Information level and above
 - **File**: `logs/mcp-dotnet-cli-workshop-{Date}.log` (daily rolling)
 
-Adjust in `Program.cs`:
-
-```csharp
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()  // Change minimum level
-    .WriteTo.Console()
-.WriteTo.File("logs/mcp-dotnet-cli-workshop-.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
-```
+Adjust logging levels in `appsettings.json` under the `Serilog` section.
 
 ## Development
 

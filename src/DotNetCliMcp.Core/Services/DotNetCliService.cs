@@ -38,7 +38,17 @@ public partial class DotNetCliService(ILogger<DotNetCliService> logger) : IDotNe
         return this.ParseRuntimeList(output);
     }
 
-    private async Task<string> ExecuteDotNetCommandAsync(string arguments, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<string> GetEffectiveSdkAsync(string? workingDirectory = null, CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("Executing dotnet --version in directory: {Directory}", workingDirectory ?? "current");
+        var output = await this.ExecuteDotNetCommandAsync("--version", cancellationToken, workingDirectory).ConfigureAwait(false);
+
+        // dotnet --version returns just the version number
+        return output.Trim();
+    }
+
+    private async Task<string> ExecuteDotNetCommandAsync(string arguments, CancellationToken cancellationToken, string? workingDirectory = null)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -49,6 +59,11 @@ public partial class DotNetCliService(ILogger<DotNetCliService> logger) : IDotNe
             UseShellExecute = false,
             CreateNoWindow = true
         };
+
+        if (!string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            startInfo.WorkingDirectory = workingDirectory;
+        }
 
         using var process = new Process { StartInfo = startInfo };
         var outputBuilder = new StringBuilder();

@@ -22,4 +22,13 @@ public interface IDotNetCliService
     /// Executes: dotnet --list-runtimes
     /// </summary>
     Task<IReadOnlyList<RuntimeInfo>> GetInstalledRuntimesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the effective .NET SDK version being used in the specified directory.
+    /// This respects global.json and roll-forward rules.
+    /// Executes: dotnet --version (in the specified directory)
+    /// </summary>
+    /// <param name="workingDirectory">The directory to check the SDK version in. If null, uses the current directory.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<string> GetEffectiveSdkAsync(string? workingDirectory = null, CancellationToken cancellationToken = default);
 }

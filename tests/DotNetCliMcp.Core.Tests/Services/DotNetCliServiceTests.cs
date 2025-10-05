@@ -80,4 +80,32 @@ public class DotNetCliServiceTests
             Assert.Matches(@"^\d+\.\d+\.\d+", sdk.Version);
         });
     }
+
+    [Fact]
+    public async Task GetEffectiveSdk_ShouldReturnVersionAsync()
+    {
+        // Act
+        var result = await this._service.GetEffectiveSdkAsync().ConfigureAwait(true);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotEmpty(result);
+        // Should match version pattern: major.minor.patch or major.minor.patch-preview
+        Assert.Matches(@"^\d+\.\d+\.\d+", result);
+    }
+
+    [Fact]
+    public async Task GetEffectiveSdk_WithSpecificDirectory_ShouldReturnVersionAsync()
+    {
+        // Arrange
+        var workingDirectory = Directory.GetCurrentDirectory();
+
+        // Act
+        var result = await this._service.GetEffectiveSdkAsync(workingDirectory).ConfigureAwait(true);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotEmpty(result);
+        Assert.Matches(@"^\d+\.\d+\.\d+", result);
+    }
 }

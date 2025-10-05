@@ -148,4 +148,31 @@ public class DotNetCliPlugin(IDotNetCliService cliService, ILogger<DotNetCliPlug
             return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
+
+    [KernelFunction("get_effective_sdk")]
+    [Description("Gets the effective .NET SDK version that will be used in the specified directory. This respects global.json and roll-forward rules, making it the best choice to answer 'which version do I have' when inside a project directory.")]
+    public async Task<string> GetEffectiveSdkAsync(
+        [Description("The directory to check. If not provided, uses the current working directory.")] string? workingDirectory = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            logger.LogInformation("Plugin function get_effective_sdk invoked with workingDirectory: {Directory}", workingDirectory ?? "current");
+            var effectiveVersion = await cliService.GetEffectiveSdkAsync(workingDirectory, cancellationToken).ConfigureAwait(false);
+
+            var result = new
+            {
+                effective_version = effectiveVersion,
+                working_directory = workingDirectory ?? Environment.CurrentDirectory,
+                note = "This is the SDK version that dotnet will use in this directory, respecting global.json if present"
+            };
+
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error executing get_effective_sdk");
+            return JsonSerializer.Serialize(new { error = ex.Message });
+        }
+    }
 }

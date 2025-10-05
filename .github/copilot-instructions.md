@@ -139,3 +139,16 @@ Potential areas for expansion:
 - Place testing guidance at the end of README under "Next Steps / Testing" and keep it concise.
 - Avoid duplicating content already covered in README.
 - Keep examples minimal and task-focused when proposing changes in PRs.
+
+## Documentation File Creation Rules
+
+**CRITICAL: Do not create new markdown/documentation files without explicit instructions.**
+
+Exceptions to this rule:
+1. **Summary documents**: If creating a summary of work, changes, or analysis, place it in the `archive/` directory (not tracked by git)
+2. **Explicitly requested**: Only when the user explicitly asks for a new documentation file
+
+Rationale:
+- The `archive/` directory is .gitignored and used for internal documentation that won't clutter the repository
+- All user-facing documentation should be consolidated in README.md
+- Temporary analysis files, work summaries, and planning documents belong in `archive/`
