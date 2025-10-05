@@ -1,8 +1,8 @@
 # Prompt to .NET CLI with MCP
 
-> **Note**: this is part of internal workshop materials. Any improvements are welcome.
-
 A .NET 9 sample that turns natural language into `dotnet` CLI commands via Semantic Kernel + local LLM, enabling AI-powered interactions with your .NET environment.
+
+> **Workshop Materials**: This project serves as the foundation for a hands-on workshop teaching MCP integration, Semantic Kernel agents, and LLM tool calling. See [WORKSHOP-DRAFT.md](WORKSHOP-DRAFT.md) for the full workshop curriculum.
 
 ![Prompt to .NET CLI with MCP](./assets/lm-studio-chat.png)
 
@@ -346,4 +346,4 @@ flowchart LR
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License - See [LICENSE](LICENSE) for details.

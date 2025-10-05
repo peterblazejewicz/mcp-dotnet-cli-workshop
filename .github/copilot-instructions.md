@@ -137,8 +137,10 @@ dotnet format
 Exceptions to this rule:
 1. **Summary documents**: If creating a summary of work, changes, or analysis, place it in the `archive/` directory (not tracked by git)
 2. **Explicitly requested**: Only when the user explicitly asks for a new documentation file
+3. **Workshop materials**: WORKSHOP-DRAFT.md is allowed at the repo root for workshop planning
 
 Rationale:
 - The `archive/` directory is .gitignored and used for internal documentation that won't clutter the repository
 - All user-facing documentation should be consolidated in README.md
 - Temporary analysis files, work summaries, and planning documents belong in `archive/`
+- Workshop materials are educational resources that complement the technical documentation
