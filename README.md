@@ -1,12 +1,16 @@
 # Prompt to .NET CLI with MCP
 
+> **Note**: this is part of internal workshop materials. Any improvements are welcome.
+
 A .NET 9 sample that turns natural language into `dotnet` CLI commands via Semantic Kernel + local LLM, enabling AI-powered interactions with your .NET environment.
+
+![Prompt to .NET CLI with MCP](./assets/lm-studio-chat.png)
 
 ![MCP Inspector with .NET CLI MCP](./assets/mcp-inspector.png)
 
 ## How It Works
 
-> **TL;DR;**: the LLM selects an MCP function, Semantic Kernel auto-invokes it, results are returned and summarized into a concise answer. You can use your native language to ask questions about your .NET environment.
+> **TL;DR;**: Two modes in one repo: (1) **MCP Server** - exposes .NET CLI tools via stdio transport for MCP clients (Claude, Warp, LM Studio), and (2) **SK Chat App** - standalone Semantic Kernel demo with auto-function calling to query your .NET environment using natural language + local LLM.
 
 - The LLM chooses an MCP function based on your question.
 - Semantic Kernel auto-invokes the function and returns structured results.
