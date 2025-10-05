@@ -154,6 +154,8 @@ sequenceDiagram
 
 ## Quick Start
 
+### Run Semantic Kernel Chat App
+
 ```bash
 # One-shot setup (requires pwsh)
 pwsh -File scripts/setup-collaborator.ps1
@@ -167,6 +169,16 @@ Try prompts:
 - List all installed .NET SDKs
 - Do I have .NET 8.0.413 installed?
 - Jaki jest mój aktualny SDK?
+
+### Run MCP Server
+
+```bash
+# Run MCP server (for use with Claude/Warp/LM Studio)
+dotnet run --project src/DotNetCliMcp.Server
+
+# Or test with MCP Inspector
+npx @modelcontextprotocol/inspector dotnet run --project src/DotNetCliMcp.Server
+```
 
 ## Available MCP Functions
 
@@ -333,15 +345,38 @@ dotnet format
 ## Stack
 
 ```mermaid
-flowchart LR
-  net[.NET 9.0] --> sk[Semantic Kernel 1.65+]
-  net --> serilog[Serilog 4.x]
-  net --> hosting[Extensions.Hosting]
-  sk --> msai[MS.Extensions.AI]
-  testing[xUnit 3 + NSubstitute]
+flowchart TB
+  subgraph core["Core Stack"]
+    net[.NET 9.0]
+    sk[Semantic Kernel 1.65]
+    msai[MS.Extensions.AI 9.9]
+  end
+  
+  subgraph server["MCP Server"]
+    mcp[MCP.NET SDK 0.4]
+    hosting[Extensions.Hosting 10.0]
+  end
+  
+  subgraph shared["Shared Infrastructure"]
+    serilog[Serilog 4.3]
+    config[Configuration 9.0]
+  end
+  
+  subgraph testing["Testing"]
+    xunit[xUnit 2.9]
+    nsub[NSubstitute 5.3]
+  end
+  
+  net --> sk
+  net --> mcp
+  sk --> msai
+  mcp --> hosting
+  net --> serilog
+  net --> config
   
   style net fill:#512bd4,color:#fff
   style sk fill:#28a745,color:#fff
+  style mcp fill:#ff6b6b,color:#fff
 ```
 
 ## License
