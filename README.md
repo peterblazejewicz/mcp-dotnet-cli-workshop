@@ -4,37 +4,55 @@ A .NET 9 sample that turns natural language into `dotnet` CLI commands via Seman
 
 ## How It Works
 
-> **TL;DR;**: the LLM selects an MCP function, Semantic Kernel auto-invokes it, results are returned and summarized into a concise answer.
+> **TL;DR;**: the LLM selects an MCP function, Semantic Kernel auto-invokes it, results are returned and summarized into a concise answer. You can use your native language to ask questions about your .NET environment.
+
+- The LLM chooses an MCP function based on your question.
+- Semantic Kernel auto-invokes the function and returns structured results.
+- The app summarizes the results into a concise answer.
 
 ```bash
-dotnet run --project src/DotNetCliMcp.App
+dotnet run --project src\DotNetCliMcp.App\DotNetCliMcp.App.csproj
 
-[16:32:43 INF] Starting Prompt to .NET CLI with MCP
-[16:32:43 INF] Semantic Kernel initialized with 1 plugins
-[16:32:43 INF] Available functions: get_dotnet_info, list_installed_sdks, list_installed_runtimes, check_sdk_version, get_latest_sdk, get_effective_sdk
-[16:32:43 INF] === Prompt to .NET CLI with MCP ===
-[16:32:43 INF] Connected to LM Studio at: http://127.0.0.1:1234/v1
-[16:32:43 WRN] Note: Make sure LM Studio is running with a model loaded
-[16:32:43 INF] Type your questions about .NET SDK/Runtime (or 'exit' to quit)
-[16:32:43 INF] 
-You: List all installed .NET SDKs
-[16:32:44 INF] Processing user query: List all installed .NET SDKs
-Assistant: ....
-[16:32:51 INF] Plugin function list_installed_sdks invoked
-[16:32:51 INF] Executing dotnet --list-sdks
-[16:32:51 INF] Found 9 installed SDKs
-You have 9 .NET SDK versions installed. Here's the list:
+[18:41:15 INF] Starting Prompt to .NET CLI with MCP
+[18:41:15 INF] Semantic Kernel initialized with 1 plugins
+[18:41:15 INF] Available functions: get_dotnet_info, list_installed_sdks, list_installed_runtimes, check_sdk_version, get_latest_sdk, get_effective_sdk
+[18:41:15 INF] === Prompt to .NET CLI with MCP ===
+[18:41:15 INF] Connected to LM Studio at: http://127.0.0.1:1234/v1
+[18:41:15 INF] HTTP timeout: 300s (0=infinite), Connect timeout: 15s
+[18:41:15 WRN] Note: Make sure LM Studio is running with a model loaded
+[18:41:15 INF] Type your questions about .NET SDK/Runtime (or 'exit' to quit)
+[18:41:15 INF] 
+You: list all my installed .net runtimes
+[18:41:24 INF] Processing user query: list all my installed .net runtimes
 
-- Version: 6.0.419, Path: /usr/local/share/dotnet/sdk
-- Version: 8.0.120, Path: /usr/local/share/dotnet/sdk
-- Version: 8.0.303, Path: /usr/local/share/dotnet/sdk
-- Version: 8.0.403, Path: /usr/local/share/dotnet/sdk
-- Version: 8.0.404, Path: /usr/local/share/dotnet/sdk
-- Version: 9.0.100, Path: /usr/local/share/dotnet/sdk
-- Version: 9.0.103, Path: /usr/local/share/dotnet/sdk
-- Version: 9.0.203, Path: /usr/local/share/dotnet/sdk
-- Version: 9.0.302, Path: /usr/local/share/dotnet/sdk
+Assistant: \[18:41:25 INF] Plugin function list_installed_runtimes invoked
+[18:41:25 INF] Executing dotnet --list-runtimes
+[18:41:25 INF] Found 9 installed runtimes
+You have the following .NET runtimes installed:
+
+- **Microsoft.AspNetCore.App** 8.0.19  
+- **Microsoft.AspNetCore.App** 9.0.8  
+- **Microsoft.AspNetCore.App** 10.0.0‑preview.7.25380.108  
+
+- **Microsoft.NETCore.App** 8.0.19  
+- **Microsoft.NETCore.App** 9.0.8  
+- **Microsoft.NETCore.App** 10.0.0‑preview.7.25380.108  
+
+- **Microsoft.WindowsDesktop.App** 8.0.19  
+- **Microsoft.WindowsDesktop.App** 9.0.8  
+- **Microsoft.WindowsDesktop.App** 10.0.0‑preview.7.25380.108  
+
+All are located under `C:\Program Files\dotnet\shared`.
 ```
+
+### You can have fun
+
+```console
+# Example (Polish)
+User: jaki dzisiaj jest dzień tygodnia?
+Assistant: Dziś jest niedziela.
+```
+
 ```mermaid
 sequenceDiagram
   participant U as User
@@ -98,10 +116,10 @@ dotnet build
 dotnet run --project src/DotNetCliMcp.App
 ```
 
-Example queries:
-- "List all installed .NET SDKs"
-- "Do I have .NET 8.0.202 SDK?"
-- "What's my current SDK version?"
+Try prompts:
+- List all installed .NET SDKs
+- Do I have .NET 8.0.413 installed?
+- Jaki jest mój aktualny SDK?
 
 ## Available MCP Functions
 
@@ -109,14 +127,14 @@ The following functions are exposed to the LLM:
 
 | Function | Description |
 |----------|-------------|
-| `get_effective_sdk` | Get the effective .NET SDK version in use ⭐ |
+| `get_effective_sdk` | Get the effective .NET SDK version in use * |
 | `get_dotnet_info` | Get comprehensive .NET environment information |
 | `list_installed_sdks` | List all installed .NET SDKs |
 | `list_installed_runtimes` | List all installed runtimes |
 | `check_sdk_version` | Check if a specific SDK version is installed |
 | `get_latest_sdk` | Get the latest installed SDK version |
 
-⭐ = Respects `global.json` configuration
+* = Respects `global.json` configuration
 
 ## Project Structure
 
