@@ -2,6 +2,8 @@
 
 A .NET 9 sample that turns natural language into `dotnet` CLI commands via Semantic Kernel + local LLM, enabling AI-powered interactions with your .NET environment.
 
+![MCP Inspector with .NET CLI MCP](./assets/mcp-inspector.png)
+
 ## How It Works
 
 > **TL;DR;**: the LLM selects an MCP function, Semantic Kernel auto-invokes it, results are returned and summarized into a concise answer. You can use your native language to ask questions about your .NET environment.
@@ -87,18 +89,58 @@ sequenceDiagram
 
 ## Architecture
 
+### Two Modes: App vs Server
+
 ```mermaid
-flowchart LR
-  user[Developer] -->|Natural language| app[DotNetCliMcp.App]
-  app --> sk[Semantic Kernel]
-  sk --> plugin[DotNetCliPlugin]
+flowchart TB
+  subgraph app["DotNetCliMcp.App (Standalone Demo)"]
+    user[Developer] -->|Natural language| console[Console App]
+    console --> sk[Semantic Kernel]
+    sk <-->|OpenAI API| lms[LM Studio]
+    sk --> plugin[DotNetCliPlugin]
+  end
+  
+  subgraph server["DotNetCliMcp.Server (MCP Server)"]
+    client[MCP Client<br/>Claude/Warp/etc] <-->|stdio<br/>JSON-RPC| mcpserver[MCP Server]
+    mcpserver --> tools[DotNetCliMcpTools]
+  end
+  
   plugin --> service[DotNetCliService]
-  service --> cli[dotnet CLI]
-  sk <-->|Tool call / JSON| llm[LM Studio]
-  cli --> service
-  service --> plugin
-  plugin --> sk
-  sk --> app
+  tools --> service
+  service -->|Process.Start| cli[dotnet CLI]
+  
+  style app fill:#e1f5ff
+  style server fill:#fff4e1
+```
+
+### MCP Server Flow (stdio transport)
+
+```mermaid
+sequenceDiagram
+  participant C as MCP Client<br/>(Claude/Warp)
+  participant S as MCP Server<br/>(stdio)
+  participant T as DotNetCliMcpTools
+  participant SVC as DotNetCliService
+  participant CLI as dotnet CLI
+
+  Note over C,S: stdin/stdout = JSON-RPC<br/>stderr = logs
+  
+  C->>+S: initialize (via stdin)
+  S-->>-C: capabilities (via stdout)
+  
+  C->>+S: tools/list
+  S-->>-C: 6 MCP tools
+  
+  C->>+S: tools/call: list_installed_sdks
+  S->>+T: Execute tool
+  T->>+SVC: ListInstalledSdksAsync()
+  SVC->>+CLI: dotnet --list-sdks
+  CLI-->>-SVC: Raw output
+  SVC-->>-T: List<SdkInfo>
+  T-->>-S: JSON result
+  S-->>-C: Tool response (via stdout)
+  
+  Note over S: All logs → stderr
 ```
 
 ## Prerequisites
@@ -124,71 +166,142 @@ Try prompts:
 
 ## Available MCP Functions
 
-The following functions are exposed to the LLM:
+```mermaid
+flowchart LR
+  subgraph tools["6 MCP Tools"]
+    direction TB
+    t1[list_installed_sdks]
+    t2[list_installed_runtimes]
+    t3[get_effective_sdk*]
+    t4[get_dotnet_info]
+    t5[check_sdk_version]
+    t6[get_latest_sdk]
+  end
+  
+  subgraph cli["dotnet CLI"]
+    direction TB
+    c1[--list-sdks]
+    c2[--list-runtimes]
+    c3[--version]
+    c4[--info]
+    c5[derived]
+    c6[derived]
+  end
+  
+  t1 --> c1
+  t2 --> c2
+  t3 --> c3
+  t4 --> c4
+  t5 --> c5
+  t6 --> c6
+  
+  style t3 fill:#ffe1e1
+```
 
-| Function | Description |
-|----------|-------------|
-| `get_effective_sdk` | Get the effective .NET SDK version in use * |
-| `get_dotnet_info` | Get comprehensive .NET environment information |
-| `list_installed_sdks` | List all installed .NET SDKs |
-| `list_installed_runtimes` | List all installed runtimes |
-| `check_sdk_version` | Check if a specific SDK version is installed |
-| `get_latest_sdk` | Get the latest installed SDK version |
-
-* = Respects `global.json` configuration
+\* = Respects `global.json` configuration
 
 ## Project Structure
 
-```
-cli-mcp/
-├── src/
-│   ├── DotNetCliMcp.App/
-│   │   ├── Infrastructure/         # Configuration, logging
-│   │   └── Program.cs              # SK setup + chat loop
-│   ├── DotNetCliMcp.Server/
-│   │   ├── Infrastructure/         # Configuration, logging
-│   │   ├── Tools/                  # MCP tools
-│   │   └── Program.cs              # MCP server entrypoint
-│   └── DotNetCliMcp.Core/
-│       ├── Contracts/              # DTOs (DotNetInfo, SdkInfo, RuntimeInfo)
-│       ├── Services/               # IDotNetCliService, DotNetCliService
-│       └── Plugins/                # DotNetCliPlugin (MCP functions)
-├── tests/
-│   └── DotNetCliMcp.Core.Tests/
-│       ├── Integration/            # LLM interaction tests
-│       └── Services/               # Unit tests
-└── Mcp.DotNet.CliWorkshop.sln
+```mermaid
+flowchart TB
+  subgraph app["DotNetCliMcp.App"]
+    app_infra[Infrastructure]
+    app_prog[Program.cs<br/>SK + Chat Loop]
+  end
+  
+  subgraph server["DotNetCliMcp.Server"]
+    srv_infra[Infrastructure]
+    srv_tools[Tools<br/>DotNetCliMcpTools]
+    srv_prog[Program.cs<br/>MCP Entrypoint]
+  end
+  
+  subgraph core["DotNetCliMcp.Core (Shared)"]
+    contracts[Contracts<br/>DTOs]
+    services[Services<br/>DotNetCliService]
+    plugins[Plugins<br/>DotNetCliPlugin]
+  end
+  
+  subgraph tests["DotNetCliMcp.Core.Tests"]
+    integration[Integration Tests]
+    unit[Unit Tests]
+  end
+  
+  app --> core
+  server --> core
+  tests --> core
+  
+  style core fill:#ffd700
+  style app fill:#e1f5ff
+  style server fill:#fff4e1
 ```
 
 ## Configuration
 
-### DotNetCliMcp.App (LM Studio Demo)
+### stdio Transport (Critical for MCP)
 
-Edit `src/DotNetCliMcp.App/appsettings.json` or use environment variables:
+```mermaid
+flowchart LR
+  subgraph client["MCP Client Process"]
+    c[Claude/Warp/etc]
+  end
+  
+  subgraph server["MCP Server Process"]
+    direction TB
+    stdin[stdin<br/>JSON-RPC requests]
+    stdout[stdout<br/>JSON-RPC responses]
+    stderr[stderr<br/>Logs/diagnostics]
+  end
+  
+  c -->|write| stdin
+  stdout -->|read| c
+  stderr -.->|ignore/log| c
+  
+  style stdin fill:#d4edda
+  style stdout fill:#d4edda
+  style stderr fill:#fff3cd
+```
+
+⚠️ **Critical**: stdout must contain ONLY JSON-RPC. All logs go to stderr.
+
+### DotNetCliMcp.App (LM Studio Demo)
 
 ```bash
 export OpenAI__Endpoint="http://127.0.0.1:1234/v1"
 export OpenAI__Model="your-model-name"
-export OpenAI__ApiKey="not-needed"
-export OpenAI__Temperature="0.2"
 ```
 
 ### DotNetCliMcp.Server (MCP Server)
 
-Use tool-specific environment variables with `MCPDOTNETCLI_` prefix to avoid conflicts:
-
 ```bash
-# Set logging level
+# Tool-specific prefix prevents conflicts
 export MCPDOTNETCLI_Logging__MinimumLevel=Debug
-
-# Change log file path
 export MCPDOTNETCLI_Logging__File__Path=/var/log/mcp-dotnet-cli.log
-
-# Set environment
 export MCPDOTNETCLI_ENVIRONMENT=Development
 ```
 
-**Configure in MCP clients** (Claude Desktop, LM Studio, Warp, etc.):
+### MCP Client Configuration
+
+```mermaid
+flowchart TB
+  subgraph clients["MCP Clients"]
+    claude["Claude Desktop<br/>~/.config/claude/"]
+    warp["Warp Terminal<br/>Settings > MCP"]
+    lms["LM Studio<br/>Settings > MCP Servers"]
+    vscode["VS Code<br/>.vscode/mcp.json"]
+  end
+  
+  subgraph config["Server Config"]
+    direction TB
+    json["{<br/>  'type': 'stdio',<br/>  'command': 'dotnet',<br/>  'args': ['run', '--project', 'path']<br/>}"]
+  end
+  
+  clients --> config
+  config --> server[DotNetCliMcp.Server]
+  
+  style server fill:#28a745,color:#fff
+```
+
+**Example** (Claude Desktop / Warp / LM Studio):
 
 ```json
 {
@@ -196,7 +309,7 @@ export MCPDOTNETCLI_ENVIRONMENT=Development
     "dotnet-cli": {
       "type": "stdio",
       "command": "dotnet",
-      "args": ["run", "--project", "path/to/DotNetCliMcp.Server"],
+      "args": ["run", "--project", "C:\\path\\to\\DotNetCliMcp.Server"],
       "env": {
         "MCPDOTNETCLI_Logging__MinimumLevel": "Information"
       }
@@ -205,22 +318,27 @@ export MCPDOTNETCLI_ENVIRONMENT=Development
 }
 ```
 
-Logs: `logs/mcp-dotnet-cli-workshop-{Date}.log` (daily rolling)
-
 ## Development
 
 ```bash
-dotnet test
+dotnet build
+dotnet test    # 20 tests
 dotnet format
 ```
 
-## Technology Stack
+## Stack
 
-- .NET 9.0 (file-scoped namespaces, primary constructors)
-- Semantic Kernel 1.65+ (function calling, auto-invoke)
-- Microsoft.Extensions.AI
-- Serilog 4.x
-- xUnit 3 + NSubstitute
+```mermaid
+flowchart LR
+  net[.NET 9.0] --> sk[Semantic Kernel 1.65+]
+  net --> serilog[Serilog 4.x]
+  net --> hosting[Extensions.Hosting]
+  sk --> msai[MS.Extensions.AI]
+  testing[xUnit 3 + NSubstitute]
+  
+  style net fill:#512bd4,color:#fff
+  style sk fill:#28a745,color:#fff
+```
 
 ## License
 

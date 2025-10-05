@@ -1,6 +1,6 @@
 # .NET CLI MCP Server
 
-MCP server exposing .NET CLI capabilities via stdio transport. Part of the [mcp-dotnet-cli-workshop](https://github.com/peterblazejewicz/mcp-dotnet-cli-workshop).
+MCP server is exposing .NET CLI capabilities via stdio transport. Part of the [mcp-dotnet-cli-workshop](https://github.com/peterblazejewicz/mcp-dotnet-cli-workshop).
 
 ## Tools
 
@@ -39,7 +39,7 @@ export MCPDOTNETCLI_Logging__File__Path=/var/log/mcp-dotnet-cli.log
 export MCPDOTNETCLI_ENVIRONMENT=Development
 ```
 
-See main [README](../../README.md) for details.
+See the main [README](../../README.md) for details.
 
 ## Testing
 
