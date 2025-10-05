@@ -28,7 +28,7 @@ public interface IDotNetCliService
     /// This respects global.json and roll-forward rules.
     /// Executes: dotnet --version (in the specified directory)
     /// </summary>
-    /// <param name="workingDirectory">The directory to check the SDK version in. If null, uses the current directory.</param>
+    /// <param name="workingDirectory">The directory to check the SDK version in. If null, use the current directory.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task<string> GetEffectiveSdkAsync(string? workingDirectory = null, CancellationToken cancellationToken = default);
 }

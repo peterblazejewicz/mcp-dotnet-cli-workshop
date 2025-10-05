@@ -6,7 +6,7 @@ namespace Mcp.DotNet.CliWorkshop.Core.Plugins;
 
 /// <summary>
 /// Semantic Kernel plugin that exposes .NET CLI capabilities as MCP-compatible functions.
-/// These functions can be called by LLMs to answer questions about the .NET environment.
+/// LLMs can call these functions to answer questions about the .NET environment.
 /// </summary>
 public class DotNetCliPlugin(IDotNetCliService cliService, ILogger<DotNetCliPlugin> logger)
 {

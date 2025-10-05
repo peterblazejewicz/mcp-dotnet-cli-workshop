@@ -1,16 +1,11 @@
-﻿using DotNetCliMcp.App.Infrastructure.Logging;
+﻿using DotNetCliMcp.App.Infrastructure.Configuration;
+using DotNetCliMcp.App.Infrastructure.Logging;
 
 
 try
 {
     // Build configuration (JSON + environment variables)
-    var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-    var configuration = new ConfigurationBuilder()
-        .SetBasePath(AppContext.BaseDirectory)
-        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
-        .AddEnvironmentVariables()
-        .Build();
+    var configuration = ConfigurationFactory.Create();
 
     // Initialize logging
     using var loggerFactory = LoggingBootstrapper.Initialize(configuration);
@@ -68,7 +63,7 @@ try
 
     // Register services
     kernelBuilder.Services.AddSingleton(loggerFactory);
-    kernelBuilder.Services.AddSingleton<IConfiguration>(configuration);
+    kernelBuilder.Services.AddSingleton(configuration);
     kernelBuilder.Services.AddSingleton<IDotNetCliService>(sp =>
         new DotNetCliService(loggerFactory.CreateLogger<DotNetCliService>()));
 
@@ -163,7 +158,7 @@ Remember: Pick the first matching tool from the selection guide and call it imme
     logger.LogInformation("Type your questions about .NET SDK/Runtime (or 'exit' to quit)");
     logger.LogInformation(string.Empty);
 
-    // Interactive chat loop with optimized settings for tool calling
+    // Interactive chat loops with optimized settings for tool calling
     // Note: For reasoning models like DeepSeek R1, avoid stop sequences that block reasoning
     // Configure generation settings (configurable via appsettings)
     var temperature = configuration.GetValue<double?>("OpenAI:Temperature") ?? 0.2;

@@ -113,16 +113,6 @@ dotnet format
 - **Coverage targets**: Aim for 80%+ code coverage
 - Run tests before commits
 
-## Future Enhancements
-
-Potential areas for expansion:
-- Add support for `dotnet new` templates listing
-- Add project file analysis (read .csproj)
-- Support for NuGet package queries
-- Global tool management
-- Solution file (.sln) operations
-- Migration assistant (suggest SDK upgrades)
-
 ## Notes
 
 - This is a local-first application - no cloud dependencies
