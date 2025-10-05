@@ -92,118 +92,69 @@ try
 
     // Create a chat history with enhanced v2 system prompt for better tool calling and reasoning suppression
     var history = new ChatHistory();
-    history.AddSystemMessage(@"You are a .NET SDK assistant that provides information about installed .NET SDKs and runtimes.
+    history.AddSystemMessage(@"You are a .NET SDK assistant. Answer questions about installed .NET SDKs and runtimes.
 
-## CRITICAL: Output Format Rules
+CRITICAL RULES:
+• NEVER use <think>, </think>, <reasoning>, or any XML tags in your output
+• Output ONLY tool calls OR plain text responses
+• Make ONE tool call per question, then STOP and wait for results
+• After receiving results, respond in conversational English only
 
-**NEVER include reasoning tags in your output:**
-- ❌ DO NOT use <think>, </think>, <reasoning>, or any XML-style tags
-- ❌ DO NOT show your internal thought process
-- ❌ DO NOT explain your tool selection logic to the user
-- ✅ Output ONLY tool calls followed by natural language responses
+TOOL SELECTION (check in this order):
+1. Question contains ""runtime"" → DotNetCli_list_installed_runtimes
+2. Question asks ""list all"" or ""show all"" SDKs → DotNetCli_list_installed_sdks
+3. Question asks ""which version"" (singular) → DotNetCli_get_effective_sdk
+4. Question asks ""latest SDK"" → DotNetCli_get_latest_sdk
+5. Question checks specific version (e.g., ""9.0.302"") → DotNetCli_check_sdk_version
+6. Question asks for ""environment"" or ""system info"" → DotNetCli_get_dotnet_info
 
-**Output Structure:**
-1. If a tool is needed: Output tool call and STOP immediately
-2. After receiving tool result: Output a natural language response ONLY
+AVAILABLE TOOLS:
 
-## Available Tools
+DotNetCli_get_effective_sdk
+• Parameters: {""workingDirectory"": ""/optional/path""} or {}
+• Returns: SDK version that will be used in specified/current directory
+• Use for: ""which version do I have"", ""what version is active""
 
-You have access to these functions to query .NET SDK information:
+DotNetCli_list_installed_sdks
+• Parameters: {}
+• Returns: List of all installed SDK versions with paths
+• Use for: ""list all SDKs"", ""show me all versions""
 
-1. **DotNetCli_get_effective_sdk** ⭐ PREFERRED for ""which version"" questions
-   - Parameters: {""workingDirectory"": ""/path""} (optional)
-   - Returns: The SDK version that dotnet will use in the specified/current directory
-   - Respects global.json and roll-forward rules
-   - **Use when**: User asks ""which version"" (singular), ""what version do I have"", or ""what's the active version""
+DotNetCli_list_installed_runtimes
+• Parameters: {}
+• Returns: All installed runtimes with names, versions, paths
+• Use for: any question mentioning ""runtime""
 
-2. **DotNetCli_list_installed_sdks**
-   - Parameters: None (use empty object {})
-   - Returns: Complete list of all installed SDK versions with paths
-   - **Use when**: User asks for ""versions"" (plural), ""list all"", ""show me all SDKs""
+DotNetCli_check_sdk_version
+• Parameters: {""version"": ""X.Y.Z""}
+• Returns: boolean if specific version is installed
+• Use for: ""do I have SDK 9.0.302""
 
-3. **DotNetCli_list_installed_runtimes**
-   - Parameters: None (use empty object {})
-   - Returns: All installed runtimes with names, versions, and paths
-   - **Use when**: User asks about runtimes specifically
+DotNetCli_get_latest_sdk
+• Parameters: {}
+• Returns: Highest installed SDK version number
+• Use for: ""what's the latest SDK""
 
-4. **DotNetCli_check_sdk_version**
-   - Parameters: {""version"": ""X.Y.Z""} (required)
-   - Example: {""version"": ""9.0.302""}
-   - Returns: Boolean indicating if that specific version is installed
-   - **Use when**: User mentions a specific version number to check
+DotNetCli_get_dotnet_info
+• Parameters: {}
+• Returns: Comprehensive environment info
+• Use for: ""environment details"", ""system info""
 
-5. **DotNetCli_get_latest_sdk**
-   - Parameters: None (use empty object {})
-   - Returns: The highest version number among installed SDKs
-   - **Use when**: User asks ""what's the latest"" or ""newest SDK""
+EXAMPLES:
 
-6. **DotNetCli_get_dotnet_info**
-   - Parameters: None (use empty object {})
-   - Returns: Comprehensive environment info (SDK version, runtime, OS, architecture)
-   - **Use when**: User asks for general environment or system information
+Q: ""list all SDKs""
+A: [call DotNetCli_list_installed_sdks with {}]
+[after result] ""You have 9 .NET SDK versions installed: 6.0.419, 8.0.120, 8.0.303, 8.0.403, 8.0.404, 9.0.100, 9.0.103, 9.0.203, and 9.0.302.""
 
-## Tool Selection Guide
+Q: ""which version do I have?""
+A: [call DotNetCli_get_effective_sdk with {}]
+[after result] ""You're using .NET SDK version 9.0.302 in this directory.""
 
-Identify the question type:
-- ""which version"" (singular) → DotNetCli_get_effective_sdk
-- ""list all"" / ""show all"" / ""versions"" (plural) → DotNetCli_list_installed_sdks
-- ""do I have X.Y.Z"" → DotNetCli_check_sdk_version
-- ""latest"" / ""newest"" → DotNetCli_get_latest_sdk
-- ""runtimes"" → DotNetCli_list_installed_runtimes
-- ""environment"" / ""system info"" → DotNetCli_get_dotnet_info
+Q: ""do I have runtime 9.0.7?""
+A: [call DotNetCli_list_installed_runtimes with {}]
+[after result] ""Yes, you have .NET runtime 9.0.7 installed.""
 
-## Tool Call Rules
-
-✅ **DO:**
-- Use exact function names from the list above
-- Call exactly ONE tool per question
-- Use {} when no parameters are required
-- Stop immediately after making tool call
-- Wait for tool result before responding
-- Call the tool again if the same question is repeated
-
-❌ **DO NOT:**
-- Include <think> or reasoning tags in ANY output
-- Call multiple tools for one question
-- Use placeholder names like 'tool_name'
-- Add explanatory text before tool calls
-- Get stuck deliberating whether to call a tool - just call it
-- Respond before receiving the tool result
-
-## Handling Repeated Questions
-
-If the user asks the same question twice:
-1. **Do NOT overthink it** - just call the tool again
-2. **Do NOT get stuck in reasoning loops**
-3. **Trust that the tool will provide current information**
-
-## Response Guidelines
-
-After receiving tool result:
-- Start immediately with the answer (no preamble)
-- Include relevant version numbers
-- List SDKs in a clean format (comma-separated or bulleted)
-- Keep it conversational but accurate
-- Don't repeat information unnecessarily
-
-## Examples
-
-User: ""Show me all installed SDK versions""
-→ Call: DotNetCli_list_installed_sdks with {}
-→ Wait for result
-→ Respond: ""You have 9 .NET SDK versions installed: 6.0.419, 8.0.120, 8.0.303, 8.0.403, 8.0.404, 9.0.100, 9.0.103, 9.0.203, and 9.0.302.""
-
-User: ""Do I have .NET SDK 9.0.302?""
-→ Call: DotNetCli_check_sdk_version with {""version"": ""9.0.302""}
-→ Wait for result
-→ Respond: ""Yes, .NET SDK 9.0.302 is installed on your system.""
-
-User: ""What .NET version do I have?""
-→ Call: DotNetCli_get_effective_sdk with {}
-→ Wait for result
-→ Respond: ""You're using .NET SDK version 9.0.302 in this directory.""
-
-Remember: Your output should contain EITHER a tool call OR a natural language response. Never both in the same turn. Never reasoning tags.");
+Remember: Pick the first matching tool from the selection guide and call it immediately. No deliberation, no reasoning tags.");
 
     logger.LogInformation("=== Prompt to .NET CLI with MCP ===");
     logger.LogInformation("Connected to LM Studio at: {Endpoint}", endpoint);
@@ -225,209 +176,210 @@ Remember: Your output should contain EITHER a tool call OR a natural language re
         MaxTokens = maxTokens
         // StopSequences removed - they prevent reasoning models from working
     };
-
-    while (true)
     {
-        // Use Console.Write for the prompt as it needs to stay on same line
-        Console.Write("\x1b[32mYou: \x1b[0m");  // Green color for user prompt
-        var userInput = Console.ReadLine();
-
-        if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
+        while (true)
         {
-            logger.LogInformation("User requested exit");
-            break;
-        }
+            // Use Console.Write for the prompt as it needs to stay on same line
+            Console.Write("\x1b[32mYou: \x1b[0m");  // Green color for user prompt
+            var userInput = Console.ReadLine();
 
-        history.AddUserMessage(userInput);
-
-        try
-        {
-            logger.LogInformation("Processing user query: {Query}", userInput);
-
-            // Stream response with automatic function calling
-            // Print label once, then stream tokens in magenta
-            var sb = new System.Text.StringBuilder();
-            var consoleLock = new object();
-            Console.Write("\x1b[35m\nAssistant: ");
-
-            // Inline spinner that appears during idle periods (e.g., while tools run)
-            var lastChunkAt = DateTime.UtcNow;
-            using var spinnerCts = new CancellationTokenSource();
-            var spinnerRunning = false;
-            var spinnerTask = Task.Run(async () =>
+            if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
-                var frames = new[] { '|', '/', '-', '\\' };
-                var idx = 0;
-                while (!spinnerCts.IsCancellationRequested)
+                logger.LogInformation("User requested exit");
+                break;
+            }
+
+            history.AddUserMessage(userInput);
+
+            try
+            {
+                logger.LogInformation("Processing user query: {Query}", userInput);
+
+                // Stream response with automatic function calling
+                // Print label once, then stream tokens in magenta
+                var sb = new System.Text.StringBuilder();
+                var consoleLock = new object();
+                Console.Write("\x1b[35m\nAssistant: ");
+
+                // Inline spinner that appears during idle periods (e.g., while tools run)
+                var lastChunkAt = DateTime.UtcNow;
+                using var spinnerCts = new CancellationTokenSource();
+                var spinnerRunning = false;
+                var spinnerTask = Task.Run(async () =>
                 {
-                    try
+                    var frames = new[] { '|', '/', '-', '\\' };
+                    var idx = 0;
+                    while (!spinnerCts.IsCancellationRequested)
                     {
-                        await Task.Delay(125, spinnerCts.Token).ConfigureAwait(false);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        break;
-                    }
+                        try
+                        {
+                            await Task.Delay(125, spinnerCts.Token).ConfigureAwait(false);
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            break;
+                        }
 
-                    var idle = (DateTime.UtcNow - lastChunkAt).TotalMilliseconds > 500;
-                    if (idle && !spinnerRunning)
-                    {
-                        spinnerRunning = true;
-                        lock (consoleLock) { Console.Write(" "); } // allocate spinner cell
-                    }
+                        var idle = (DateTime.UtcNow - lastChunkAt).TotalMilliseconds > 500;
+                        if (idle && !spinnerRunning)
+                        {
+                            spinnerRunning = true;
+                            lock (consoleLock) { Console.Write(" "); } // allocate spinner cell
+                        }
 
-                    if (spinnerRunning)
+                        if (spinnerRunning)
+                        {
+                            var ch = frames[idx++ % frames.Length];
+                            lock (consoleLock) { Console.Write($"\b{ch}"); }
+                        }
+                    }
+                }, spinnerCts.Token);
+
+                await foreach (var update in chatService.GetStreamingChatMessageContentsAsync(
+                    history,
+                    settings,
+                    kernel
+                ).ConfigureAwait(false))
+                {
+                    var piece = update?.Content;
+                    if (!string.IsNullOrEmpty(piece))
                     {
-                        var ch = frames[idx++ % frames.Length];
-                        lock (consoleLock) { Console.Write($"\b{ch}"); }
+                        // Clear spinner before printing tokens
+                        if (spinnerRunning)
+                        {
+                            spinnerRunning = false;
+                            lock (consoleLock) { Console.Write("\b \b"); }
+                        }
+
+                        lock (consoleLock) { Console.Write(piece); }
+                        sb.Append(piece);
+                        lastChunkAt = DateTime.UtcNow;
                     }
                 }
-            }, spinnerCts.Token);
 
-            await foreach (var update in chatService.GetStreamingChatMessageContentsAsync(
-                history,
-                settings,
-                kernel
-            ).ConfigureAwait(false))
-            {
-                var piece = update?.Content;
-                if (!string.IsNullOrEmpty(piece))
+                // Stop spinner and clean up
+                spinnerCts.Cancel();
+                try { await spinnerTask.ConfigureAwait(false); } catch { }
+                if (spinnerRunning)
                 {
-                    // Clear spinner before printing tokens
-                    if (spinnerRunning)
-                    {
-                        spinnerRunning = false;
-                        lock (consoleLock) { Console.Write("\b \b"); }
-                    }
+                    lock (consoleLock) { Console.Write("\b \b"); }
+                }
 
-                    lock (consoleLock) { Console.Write(piece); }
-                    sb.Append(piece);
-                    lastChunkAt = DateTime.UtcNow;
+                // Reset color and finalize lines
+                Console.WriteLine("\x1b[0m");
+                Console.WriteLine();
+
+                var content = sb.ToString();
+
+                // Strip out any reasoning tags that may have leaked through
+                content = System.Text.RegularExpressions.Regex.Replace(
+                    content,
+                    @"<think>.*?</think>",
+                    "",
+                    System.Text.RegularExpressions.RegexOptions.Singleline
+                );
+                content = System.Text.RegularExpressions.Regex.Replace(
+                    content,
+                    @"<reasoning>.*?</reasoning>",
+                    "",
+                    System.Text.RegularExpressions.RegexOptions.Singleline
+                );
+
+                // Trim any extra whitespace from cleaning
+                content = content.Trim();
+
+                if (!string.IsNullOrEmpty(content))
+                {
+                    history.AddAssistantMessage(content);
+                }
+                else
+                {
+                    logger.LogWarning("Received empty or null response from chat service");
+                    logger.LogWarning("Assistant: I received an empty response. Please try again.");
+                    // Remove the last user message to allow retry
+                    if (history.Count > 0)
+                    {
+                        history.RemoveAt(history.Count - 1);
+                    }
                 }
             }
-
-            // Stop spinner and clean up
-            spinnerCts.Cancel();
-            try { await spinnerTask.ConfigureAwait(false); } catch { }
-            if (spinnerRunning)
+            catch (ArgumentOutOfRangeException ex) when (ex.Message.Contains("index"))
             {
-                lock (consoleLock) { Console.Write("\b \b"); }
-            }
-
-            // Reset color and finalize lines
-            Console.WriteLine("\x1b[0m");
-            Console.WriteLine();
-
-            var content = sb.ToString();
-
-            // Strip out any reasoning tags that may have leaked through
-            content = System.Text.RegularExpressions.Regex.Replace(
-                content,
-                @"<think>.*?</think>",
-                "",
-                System.Text.RegularExpressions.RegexOptions.Singleline
-            );
-            content = System.Text.RegularExpressions.Regex.Replace(
-                content,
-                @"<reasoning>.*?</reasoning>",
-                "",
-                System.Text.RegularExpressions.RegexOptions.Singleline
-            );
-
-            // Trim any extra whitespace from cleaning
-            content = content.Trim();
-
-            if (!string.IsNullOrEmpty(content))
-            {
-                history.AddAssistantMessage(content);
-            }
-            else
-            {
-                logger.LogWarning("Received empty or null response from chat service");
-                logger.LogWarning("Assistant: I received an empty response. Please try again.");
+                // This specific error occurs when LM Studio returns a response format
+                // that's incompatible with the OpenAI SDK's expected structure
+                logger.LogError(ex, "OpenAI SDK compatibility issue with LM Studio response");
+                logger.LogError("Error: The response from LM Studio is not compatible with the expected OpenAI format.");
+                logger.LogError("Possible causes:");
+                logger.LogError("  1. LM Studio is not running or no model is loaded");
+                logger.LogError("  2. LM Studio endpoint is incorrect (check if it should be /v1)");
+                logger.LogError("  3. The loaded model doesn't support function calling");
+                logger.LogError("  4. LM Studio version incompatibility");
+                logger.LogWarning("Please verify:");
+                logger.LogWarning("  - LM Studio is running at {Endpoint}", endpoint);
+                logger.LogWarning("  - A model is loaded in LM Studio");
+                logger.LogWarning("  - The model supports chat completions");
                 // Remove the last user message to allow retry
                 if (history.Count > 0)
                 {
                     history.RemoveAt(history.Count - 1);
                 }
             }
-        }
-        catch (ArgumentOutOfRangeException ex) when (ex.Message.Contains("index"))
-        {
-            // This specific error occurs when LM Studio returns a response format
-            // that's incompatible with the OpenAI SDK's expected structure
-            logger.LogError(ex, "OpenAI SDK compatibility issue with LM Studio response");
-            logger.LogError("Error: The response from LM Studio is not compatible with the expected OpenAI format.");
-            logger.LogError("Possible causes:");
-            logger.LogError("  1. LM Studio is not running or no model is loaded");
-            logger.LogError("  2. LM Studio endpoint is incorrect (check if it should be /v1)");
-            logger.LogError("  3. The loaded model doesn't support function calling");
-            logger.LogError("  4. LM Studio version incompatibility");
-            logger.LogWarning("Please verify:");
-            logger.LogWarning("  - LM Studio is running at {Endpoint}", endpoint);
-            logger.LogWarning("  - A model is loaded in LM Studio");
-            logger.LogWarning("  - The model supports chat completions");
-            // Remove the last user message to allow retry
-            if (history.Count > 0)
+            catch (TaskCanceledException ex)
             {
-                history.RemoveAt(history.Count - 1);
+                logger.LogError(ex, "Request timed out after {TimeoutSeconds}s (HttpClient)", httpTimeoutSeconds);
+                logger.LogError("Error: The LLM request exceeded the configured timeout.");
+                logger.LogWarning("You can increase OpenAI:HttpTimeoutSeconds (env: OpenAI__HttpTimeoutSeconds) or set it to 0 for no timeout.");
+                logger.LogWarning("LM Studio logs showing 'Client disconnected' at ~{TimeoutSeconds}s likely correspond to this timeout.", httpTimeoutSeconds);
+                // Remove the last user message to allow retry
+                if (history.Count > 0)
+                {
+                    history.RemoveAt(history.Count - 1);
+                }
             }
-        }
-        catch (TaskCanceledException ex)
-        {
-            logger.LogError(ex, "Request timed out after {TimeoutSeconds}s (HttpClient)", httpTimeoutSeconds);
-            logger.LogError("Error: The LLM request exceeded the configured timeout.");
-            logger.LogWarning("You can increase OpenAI:HttpTimeoutSeconds (env: OpenAI__HttpTimeoutSeconds) or set it to 0 for no timeout.");
-            logger.LogWarning("LM Studio logs showing 'Client disconnected' at ~{TimeoutSeconds}s likely correspond to this timeout.", httpTimeoutSeconds);
-            // Remove the last user message to allow retry
-            if (history.Count > 0)
+            catch (HttpRequestException ex)
             {
-                history.RemoveAt(history.Count - 1);
+                logger.LogError(ex, "HTTP request failed to LM Studio");
+                logger.LogError("Error: Could not connect to LM Studio.");
+                logger.LogWarning("Please ensure:");
+                logger.LogWarning("  - LM Studio is running");
+                logger.LogWarning("  - The endpoint {Endpoint} is accessible", endpoint);
+                logger.LogWarning("  - A model is loaded in LM Studio");
+                // Remove the last user message to allow retry
+                if (history.Count > 0)
+                {
+                    history.RemoveAt(history.Count - 1);
+                }
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogError(ex, "HTTP request failed to LM Studio");
-            logger.LogError("Error: Could not connect to LM Studio.");
-            logger.LogWarning("Please ensure:");
-            logger.LogWarning("  - LM Studio is running");
-            logger.LogWarning("  - The endpoint {Endpoint} is accessible", endpoint);
-            logger.LogWarning("  - A model is loaded in LM Studio");
-            // Remove the last user message to allow retry
-            if (history.Count > 0)
+            catch (HttpOperationException ex)
             {
-                history.RemoveAt(history.Count - 1);
+                logger.LogError(ex, "HTTP operation failed when communicating with LM Studio");
+                logger.LogError("Error: Failed to communicate with LM Studio.");
+                logger.LogError("Details: {Message}", ex.Message);
+                logger.LogWarning("Please ensure:");
+                logger.LogWarning("  - LM Studio is running");
+                logger.LogWarning("  - The endpoint {Endpoint} is accessible", endpoint);
+                logger.LogWarning("  - A model is loaded in LM Studio");
+                logger.LogWarning("  - The model is compatible with OpenAI chat completions");
+                // Remove the last user message to allow retry
+                if (history.Count > 0)
+                {
+                    history.RemoveAt(history.Count - 1);
+                }
             }
-        }
-        catch (HttpOperationException ex)
-        {
-            logger.LogError(ex, "HTTP operation failed when communicating with LM Studio");
-            logger.LogError("Error: Failed to communicate with LM Studio.");
-            logger.LogError("Details: {Message}", ex.Message);
-            logger.LogWarning("Please ensure:");
-            logger.LogWarning("  - LM Studio is running");
-            logger.LogWarning("  - The endpoint {Endpoint} is accessible", endpoint);
-            logger.LogWarning("  - A model is loaded in LM Studio");
-            logger.LogWarning("  - The model is compatible with OpenAI chat completions");
-            // Remove the last user message to allow retry
-            if (history.Count > 0)
+            catch (Exception ex)
             {
-                history.RemoveAt(history.Count - 1);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error processing chat message");
-            logger.LogError("Error: {Message}", ex.Message);
-            logger.LogError("Type: {ExceptionType}", ex.GetType().Name);
-            if (ex.InnerException != null)
-            {
-                logger.LogError("Inner: {InnerMessage}", ex.InnerException.Message);
-            }
-            // Remove the last user message to allow retry
-            if (history.Count > 0)
-            {
-                history.RemoveAt(history.Count - 1);
+                logger.LogError(ex, "Error processing chat message");
+                logger.LogError("Error: {Message}", ex.Message);
+                logger.LogError("Type: {ExceptionType}", ex.GetType().Name);
+                if (ex.InnerException != null)
+                {
+                    logger.LogError("Inner: {InnerMessage}", ex.InnerException.Message);
+                }
+                // Remove the last user message to allow retry
+                if (history.Count > 0)
+                {
+                    history.RemoveAt(history.Count - 1);
+                }
             }
         }
     }

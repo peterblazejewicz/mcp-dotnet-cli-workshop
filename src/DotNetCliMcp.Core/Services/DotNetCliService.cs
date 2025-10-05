@@ -62,7 +62,18 @@ public partial class DotNetCliService(ILogger<DotNetCliService> logger) : IDotNe
 
         if (!string.IsNullOrWhiteSpace(workingDirectory))
         {
-            startInfo.WorkingDirectory = workingDirectory;
+            // Resolve the working directory to an absolute path
+            var resolvedDirectory = Path.GetFullPath(workingDirectory);
+
+            // Validate that the directory exists
+            if (!Directory.Exists(resolvedDirectory))
+            {
+                logger.LogError("Working directory does not exist: {Directory}", resolvedDirectory);
+                throw new DirectoryNotFoundException($"Working directory does not exist: {resolvedDirectory}");
+            }
+
+            startInfo.WorkingDirectory = resolvedDirectory;
+            logger.LogDebug("Using working directory: {Directory}", resolvedDirectory);
         }
 
         using var process = new Process { StartInfo = startInfo };
