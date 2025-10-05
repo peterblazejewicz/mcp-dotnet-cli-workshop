@@ -1,0 +1,83 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/draft/2025-07-09/server.json",
+  "description": "Exposes .NET CLI capabilities (SDKs, runtimes, environment info) via MCP. Query installed SDKs, runtimes, effective versions, and .NET environment details through natural language.",
+  "name": "io.github.peterblazejewicz/mcp-dotnet-cli",
+  "packages": [
+    {
+      "registry_name": "nuget",
+      "name": "Blazejewicz.Mcp.DotNetCli",
+      "version": "0.1.0-beta",
+      "package_arguments": [],
+      "environment_variables": [
+        {
+          "name": "MCPDOTNETCLI_Logging__MinimumLevel",
+          "description": "Set logging level: Trace, Debug, Information, Warning, Error, Critical",
+          "required": false
+        },
+        {
+          "name": "MCPDOTNETCLI_Logging__File__Path",
+          "description": "Path for log file output (default: logs/mcp-dotnet-cli-server-.log)",
+          "required": false
+        },
+        {
+          "name": "MCPDOTNETCLI_ENVIRONMENT",
+          "description": "Environment name for configuration (Development, Staging, Production). Falls back to DOTNET_ENVIRONMENT if not set.",
+          "required": false
+        },
+        {
+          "name": "MCPDOTNETCLI_McpServer__Name",
+          "description": "Override the MCP server name",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/peterblazejewicz/mcp-dotnet-cli-workshop",
+    "source": "github"
+  },
+  "version_detail": {
+    "version": "0.1.0-beta"
+  },
+  "capabilities": {
+    "tools": [
+      {
+        "name": "list_installed_sdks",
+        "description": "Lists all installed .NET SDKs with versions and paths"
+      },
+      {
+        "name": "list_installed_runtimes",
+        "description": "Lists all installed .NET runtimes with versions and paths"
+      },
+      {
+        "name": "get_effective_sdk",
+        "description": "Gets the effective SDK version in a directory (respects global.json)"
+      },
+      {
+        "name": "get_dotnet_info",
+        "description": "Gets comprehensive .NET environment information"
+      },
+      {
+        "name": "check_sdk_version",
+        "description": "Checks if a specific SDK version is installed"
+      },
+      {
+        "name": "get_latest_sdk",
+        "description": "Gets the latest installed SDK version"
+      }
+    ]
+  },
+  "keywords": [
+    "dotnet",
+    "cli",
+    "sdk",
+    "runtime",
+    "development",
+    "tooling",
+    "ai",
+    "llm",
+    "mcp"
+  ],
+  "license": "MIT",
+  "author": "Piotr Błażejewicz"
+}

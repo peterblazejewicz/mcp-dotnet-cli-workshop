@@ -77,6 +77,7 @@ sequenceDiagram
 ## Features
 
 - **Local LLM Integration**: Connects to LM Studio for privacy-focused AI interactions
+- **MCP Server**: Exposes .NET CLI capabilities via stdio transport for MCP clients
 - **DotNet CLI Wrapper**: Query SDK versions, runtimes, and environment details
 - **MCP Functions**: Semantic Kernel plugin with tool calling support
 - **Configuration Providers**: Uses appsettings.json and environment variables for flexible configuration
@@ -144,6 +145,10 @@ cli-mcp/
 │   ├── DotNetCliMcp.App/
 │   │   ├── Infrastructure/         # Configuration, logging
 │   │   └── Program.cs              # SK setup + chat loop
+│   ├── DotNetCliMcp.Server/
+│   │   ├── Infrastructure/         # Configuration, logging
+│   │   ├── Tools/                  # MCP tools
+│   │   └── Program.cs              # MCP server entrypoint
 │   └── DotNetCliMcp.Core/
 │       ├── Contracts/              # DTOs (DotNetInfo, SdkInfo, RuntimeInfo)
 │       ├── Services/               # IDotNetCliService, DotNetCliService
@@ -157,6 +162,8 @@ cli-mcp/
 
 ## Configuration
 
+### DotNetCliMcp.App (LM Studio Demo)
+
 Edit `src/DotNetCliMcp.App/appsettings.json` or use environment variables:
 
 ```bash
@@ -164,6 +171,38 @@ export OpenAI__Endpoint="http://127.0.0.1:1234/v1"
 export OpenAI__Model="your-model-name"
 export OpenAI__ApiKey="not-needed"
 export OpenAI__Temperature="0.2"
+```
+
+### DotNetCliMcp.Server (MCP Server)
+
+Use tool-specific environment variables with `MCPDOTNETCLI_` prefix to avoid conflicts:
+
+```bash
+# Set logging level
+export MCPDOTNETCLI_Logging__MinimumLevel=Debug
+
+# Change log file path
+export MCPDOTNETCLI_Logging__File__Path=/var/log/mcp-dotnet-cli.log
+
+# Set environment
+export MCPDOTNETCLI_ENVIRONMENT=Development
+```
+
+**Configure in MCP clients** (Claude Desktop, LM Studio, Warp, etc.):
+
+```json
+{
+  "servers": {
+    "dotnet-cli": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": ["run", "--project", "path/to/DotNetCliMcp.Server"],
+      "env": {
+        "MCPDOTNETCLI_Logging__MinimumLevel": "Information"
+      }
+    }
+  }
+}
 ```
 
 Logs: `logs/mcp-dotnet-cli-workshop-{Date}.log` (daily rolling)
