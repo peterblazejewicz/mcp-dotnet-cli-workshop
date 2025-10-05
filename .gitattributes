@@ -1,23 +1,23 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Force LF for all text by default
+* text eol=lf
 
-# C# files
-*.cs text diff=csharp
+# C# source
+*.cs text eol=lf diff=csharp
 
-# Visual Studio solution files
-*.sln text eol=crlf
-*.csproj text eol=crlf
-*.vbproj text eol=crlf
-*.vcxproj text eol=crlf
-*.vcproj text eol=crlf
-*.dbproj text eol=crlf
-*.fsproj text eol=crlf
+# Solutions and project/config files (LF works fine in VS and .NET SDK)
+*.sln text eol=lf
+*.csproj text eol=lf
+*.vbproj text eol=lf
+*.vcxproj text eol=lf
+*.vcproj text eol=lf
+*.dbproj text eol=lf
+*.fsproj text eol=lf
 
 # Configuration files
-*.props text eol=crlf
-*.targets text eol=crlf
-*.config text eol=crlf
-*.xml text eol=crlf
+*.props text eol=lf
+*.targets text eol=lf
+*.config text eol=lf
+*.xml text eol=lf
 *.json text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
