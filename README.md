@@ -8,6 +8,10 @@ A .NET 9 sample that turns natural language into `dotnet` CLI commands via Seman
 
 ![MCP Inspector with .NET CLI MCP](./assets/mcp-inspector.png)
 
+## Migration Status
+
+This repository is planned to migrate from Semantic Kernel to Microsoft Agent Framework to accommodate the public release. See MIGRATION-PLAN-SK.md for the current plan and status.
+
 ## How It Works
 
 > **TL;DR;**: Two modes in one repo: (1) **MCP Server** - exposes .NET CLI tools via stdio transport for MCP clients (Claude, Warp, LM Studio), and (2) **SK Chat App** - standalone Semantic Kernel demo with auto-function calling to query your .NET environment using natural language + local LLM.

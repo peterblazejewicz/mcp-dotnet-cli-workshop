@@ -120,6 +120,10 @@ dotnet format
 - The application can work offline if LM Studio is available
 - MCP functions are synchronous wrappers around async operations
 
+## Migration Status
+
+- This repository is planned to migrate from Semantic Kernel to Microsoft Agent Framework to accommodate the public release. See MIGRATION-PLAN-SK.md for the current plan and status.
+
 ## Style Guidance
 
 - Prefer diagrams over prose; use Mermaid for architecture and sequence flows.
@@ -138,9 +142,17 @@ Exceptions to this rule:
 1. **Summary documents**: If creating a summary of work, changes, or analysis, place it in the `archive/` directory (not tracked by git)
 2. **Explicitly requested**: Only when the user explicitly asks for a new documentation file
 3. **Workshop materials**: WORKSHOP-DRAFT.md is allowed at the repo root for workshop planning
+4. **Migration plan (temporary)**: MIGRATION-PLAN-SK.md is allowed at the repo root while we plan and execute the migration to Microsoft Agent Framework. Remove or move it to `archive/` once migration is complete.
 
 Rationale:
 - The `archive/` directory is .gitignored and used for internal documentation that won't clutter the repository
 - All user-facing documentation should be consolidated in README.md
 - Temporary analysis files, work summaries, and planning documents belong in `archive/`
 - Workshop materials are educational resources that complement the technical documentation
+
+## Git Workflow Rules
+
+- Use descriptive, specific commit messages; avoid vague titles/messages such as "commit all changes".
+- Prefer Conventional Commits style when applicable (e.g., docs:, feat:, fix:, chore:, refactor:, test:). Keep the subject concise; add a brief body listing notable changes when helpful.
+- Never push to any remote (branches or tags) unless explicitly requested by the user.
+- Do not create branches or open PRs unless explicitly requested.
